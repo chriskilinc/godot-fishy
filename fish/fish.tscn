@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://i3svo3od2gvg"]
+
+[ext_resource type="Script" uid="uid://cdwwx5p0y5v4r" path="res://fish/EnemyFish.cs" id="1_sgogb"]
+[ext_resource type="Texture2D" uid="uid://vkkaurbkq6i0" path="res://icon.svg" id="1_xu20i"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xu20i"]
+size = Vector2(124, 124)
+
+[node name="Fish" type="Area2D" unique_id=2132471368]
+script = ExtResource("1_sgogb")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1636182634]
+self_modulate = Color(0.8862745, 0.09019608, 0.09803922, 1)
+texture = ExtResource("1_xu20i")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=533753813]
+shape = SubResource("RectangleShape2D_xu20i")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
