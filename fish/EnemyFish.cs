@@ -7,6 +7,9 @@ public partial class EnemyFish : Area2D
     public int Size { get; set; } = 1;
 
     [Export]
+    public int FoodValue { get; set; } = 1;
+
+    [Export]
     public float Speed { get; set; } = 100.0f;
 
     private Vector2 direction;
@@ -54,6 +57,7 @@ public partial class EnemyFish : Area2D
             {
                 // Player is bigger than enemy fish, player eats the enemy fish
                 GD.Print("Enemy fish has been eaten!");
+                player.EatFood(FoodValue);
                 QueueFree(); // Remove the enemy fish from the scene
                 // You can add logic to increase player's size here
             }
