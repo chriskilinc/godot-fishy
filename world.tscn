@@ -13,4 +13,3 @@ position = Vector2(1104, 148)
 
 [node name="Fish2" parent="." unique_id=2136701471 instance=ExtResource("2_fj7yv")]
 position = Vector2(1009, 559)
-Size = 2

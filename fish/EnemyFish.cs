@@ -15,15 +15,15 @@ public partial class EnemyFish : Area2D
     public override void _Ready()
     {
         // Randomize fish size and speed
-        Size = GD.RandRange(1, 3); // Size between 1 and 3
-        Speed = (float)GD.RandRange(50.0f, 150.0f); // Speed between 50 and 150
+        // Size = GD.RandRange(1, 3); // Size between 1 and 3
+        // Speed = (float)GD.RandRange(50.0f, 150.0f); // Speed between 50 and 150
 
         // Set random starting position within the game area
-        startPosition = new Vector2((float)GD.RandRange(0, 800), (float)GD.RandRange(0, 600));
-        Position = startPosition;
+        // startPosition = new Vector2((float)GD.RandRange(0, 800), (float)GD.RandRange(0, 600));
+        // Position = startPosition;
 
         // Set a random direction for the enemy fish
-        direction = new Vector2((float)GD.RandRange(-1, 1), (float)GD.RandRange(-1, 1)).Normalized();
+        // direction = new Vector2((float)GD.RandRange(-1, 1), (float)GD.RandRange(-1, 1)).Normalized();
     }
 
     public override void _Process(double delta)

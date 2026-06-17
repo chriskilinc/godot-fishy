@@ -4,7 +4,7 @@ using System;
 public partial class Player : CharacterBody2D
 {
     [Export]
-    public float Speed = 400.0f;
+    public float Speed = 200.0f;
     
     [Export]
     public int Size = 1;
