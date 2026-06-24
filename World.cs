@@ -1,5 +1,6 @@
 using Godot;
 
+[Tool]
 public partial class World : Node2D
 {
     [Export]
@@ -9,25 +10,80 @@ public partial class World : Node2D
     public int FishCount = 10;
 
     [Export]
-    public Vector2 SpawnAreaMin = new Vector2(0, 0);
+    public Vector2 SpawnAreaMin
+    {
+        get => _spawnAreaMin;
+        set
+        {
+            _spawnAreaMin = value;
+            QueueRedraw();
+        }
+    }
 
     [Export]
-    public Vector2 SpawnAreaMax = new Vector2(2000, 1000);
+    public Vector2 SpawnAreaMax
+    {
+        get => _spawnAreaMax;
+        set
+        {
+            _spawnAreaMax = value;
+            QueueRedraw();
+        }
+    }
+
+    [Export]
+    public Color SpawnBorderColor = new Color(0.2f, 0.8f, 1.0f, 0.9f);
+
+    [Export(PropertyHint.Range, "1,12,1")]
+    public int SpawnBorderWidth = 2;
 
     private RandomNumberGenerator _rng = new RandomNumberGenerator();
+    private Vector2 _spawnAreaMin = new Vector2(0, 0);
+    private Vector2 _spawnAreaMax = new Vector2(2000, 1000);
 
     public override void _Ready()
     {
-        _rng.Randomize();
+        QueueRedraw();
 
-        var viewport = GetViewportRect();
-        SpawnAreaMin = viewport.Position;
-        SpawnAreaMax = viewport.End;
+        if (Engine.IsEditorHint())
+        {
+            return;
+        }
+
+        _rng.Randomize();
 
         for (int i = 0; i < FishCount; i++)
         {
             SpawnFish();
         }
+    }
+
+    public override void _Draw()
+    {
+        var playableArea = GetPlayableArea();
+        var areaPosition = playableArea.Position;
+        var areaSize = playableArea.Size;
+
+        if (areaSize == Vector2.Zero)
+        {
+            return;
+        }
+
+        DrawRect(new Rect2(areaPosition, areaSize), SpawnBorderColor, false, SpawnBorderWidth);
+    }
+
+    public Rect2 GetPlayableArea()
+    {
+        var areaPosition = new Vector2(
+            Mathf.Min(SpawnAreaMin.X, SpawnAreaMax.X),
+            Mathf.Min(SpawnAreaMin.Y, SpawnAreaMax.Y)
+        );
+        var areaSize = new Vector2(
+            Mathf.Abs(SpawnAreaMax.X - SpawnAreaMin.X),
+            Mathf.Abs(SpawnAreaMax.Y - SpawnAreaMin.Y)
+        );
+
+        return new Rect2(areaPosition, areaSize);
     }
 
     private void SpawnFish()

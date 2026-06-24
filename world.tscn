@@ -7,6 +7,7 @@
 [node name="World" type="Node2D" unique_id=1021918435]
 script = ExtResource("1_world")
 FishScene = ExtResource("2_fj7yv")
+SpawnAreaMax = Vector2(1000, 500)
 
 [node name="Player" parent="." unique_id=434732959 instance=ExtResource("1_f3sb7")]
-position = Vector2(622, 374)
+position = Vector2(589, 344)

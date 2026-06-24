@@ -24,9 +24,15 @@ public partial class Player : CharacterBody2D
     public int FoodEaten { get; private set; } = 0;
 
     private int _foodTowardsNextSize = 0;
+    private World _world;
+    private CollisionShape2D _collisionShape;
+    private AnimatedSprite2D _sprite;
 
     public override void _Ready()
     {
+        _world = GetParentOrNull<World>();
+        _collisionShape = GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
+        _sprite = GetNodeOrNull<AnimatedSprite2D>("Sprite");
         ApplySizeScale();
     }
 
@@ -36,6 +42,8 @@ public partial class Player : CharacterBody2D
         var input = Input.GetVector("move_left", "move_right", "move_up", "move_down").Normalized();
         Velocity = input * Speed;
         MoveAndSlide();
+        UpdateFacingDirection(input);
+        ClampToPlayableArea();
     }
 
     public void EatFood(int amount = 1)
@@ -93,5 +101,41 @@ public partial class Player : CharacterBody2D
     {
         var targetScale = 1.0f + (Size - 1) * GrowthPerLevel;
         Scale = new Vector2(targetScale, targetScale);
+    }
+
+    private void ClampToPlayableArea()
+    {
+        if (_world == null)
+        {
+            return;
+        }
+
+        var playableArea = _world.GetPlayableArea();
+        var minPosition = playableArea.Position;
+        var maxPosition = playableArea.End;
+
+        if (_collisionShape?.Shape is RectangleShape2D rectangleShape)
+        {
+            var scaledOffset = _collisionShape.Position * Scale;
+            var scaledExtents = rectangleShape.Size * Scale / 2.0f;
+
+            minPosition += scaledExtents - scaledOffset;
+            maxPosition -= scaledExtents + scaledOffset;
+        }
+
+        Position = new Vector2(
+            Mathf.Clamp(Position.X, minPosition.X, maxPosition.X),
+            Mathf.Clamp(Position.Y, minPosition.Y, maxPosition.Y)
+        );
+    }
+
+    private void UpdateFacingDirection(Vector2 input)
+    {
+        if (_sprite == null || Mathf.IsZeroApprox(input.X))
+        {
+            return;
+        }
+
+        _sprite.FlipH = input.X < 0.0f;
     }
 }

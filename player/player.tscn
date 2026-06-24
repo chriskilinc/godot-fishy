@@ -68,69 +68,13 @@ region = Rect2(192, 16, 32, 16)
 atlas = ExtResource("2_g1dw6")
 region = Rect2(224, 16, 32, 16)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_65viv"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_g1dw6"]
 atlas = ExtResource("2_g1dw6")
 region = Rect2(0, 32, 32, 16)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_x7c3f"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_65viv"]
 atlas = ExtResource("2_g1dw6")
-region = Rect2(32, 32, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_bjvpn"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(64, 32, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_s7qer"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(96, 32, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_g4c7l"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(128, 32, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_knn7v"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(160, 32, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_7pqkx"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(192, 32, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_uw77l"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(224, 32, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_rptt4"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(0, 48, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_r7pn3"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(32, 48, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_b8hi5"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(64, 48, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_2uvqg"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(96, 48, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_1s1yo"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(128, 48, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_5ejfk"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(160, 48, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_jd2rm"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(192, 48, 32, 16)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_q28gw"]
-atlas = ExtResource("2_g1dw6")
-region = Rect2(224, 48, 32, 16)
+region = Rect2(0, 16, 32, 16)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_ge24q"]
 animations = [{
@@ -182,58 +126,21 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_c35mf")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_65viv")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_x7c3f")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_bjvpn")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_s7qer")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_g4c7l")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_knn7v")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_7pqkx")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_uw77l")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_rptt4")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_r7pn3")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_b8hi5")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_2uvqg")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_1s1yo")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_5ejfk")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_jd2rm")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_q28gw")
 }],
 "loop": true,
 "name": &"default",
 "speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g1dw6")
+}, {
+"duration": 2.0,
+"texture": SubResource("AtlasTexture_65viv")
+}],
+"loop": false,
+"name": &"eat",
+"speed": 4.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hqtel"]
@@ -245,8 +152,12 @@ FoodToGrowCurve = ExtResource("2_yw30f")
 
 [node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=967326192]
 sprite_frames = SubResource("SpriteFrames_ge24q")
-frame_progress = 0.92348725
+autoplay = "default"
+frame_progress = 0.4705048
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=657435284]
 position = Vector2(0.5, 0.5)
 shape = SubResource("RectangleShape2D_hqtel")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1039120316]
+zoom = Vector2(2.5, 2.5)
