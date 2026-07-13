@@ -3,6 +3,18 @@ using System;
 
 public partial class Player : CharacterBody2D
 {
+    [Signal]
+    public delegate void StatsChangedEventHandler();
+
+    [Signal]
+    public delegate void FoodGainedEventHandler(int amount, Vector2 worldPosition);
+
+    [Signal]
+    public delegate void GrewEventHandler(string text, Vector2 worldPosition);
+
+    [Signal]
+    public delegate void ComboTriggeredEventHandler(string text, Vector2 worldPosition);
+
     [Export]
     public float Speed = 200.0f;
     
@@ -21,11 +33,29 @@ public partial class Player : CharacterBody2D
     [Export]
     public float GrowthPerLevel = 0.1f;
 
+    [Export]
+    public float ComboWindowSeconds = 0.75f;
+
+    [Export]
+    public float ComboBonusPerChain = 0.5f;
+
+    [Export]
+    public float ComboExtraWindowPerChain = 0.15f;
+
+    [Export]
+    public float MaxComboWindowSeconds = 1.5f;
+
     public int FoodEaten { get; private set; } = 0;
     public int FoodTowardsNextSize => _foodTowardsNextSize;
     public int FoodNeededForNextSize => GetFoodRequiredForNextSize();
+    public int ComboCount => _comboCount;
+    public float ComboMultiplier => 1.0f + Math.Max(0, _comboCount - 1) * ComboBonusPerChain;
+    public float ComboTimeRemaining => (float)_comboTimeRemaining;
+    public float ComboTimeRatio => GetCurrentComboWindowSeconds() > 0.0f ? Mathf.Clamp((float)(_comboTimeRemaining / GetCurrentComboWindowSeconds()), 0.0f, 1.0f) : 0.0f;
 
     private int _foodTowardsNextSize = 0;
+    private int _comboCount = 0;
+    private double _comboTimeRemaining = 0.0;
     private World _world;
     private CollisionShape2D _collisionShape;
     private AnimatedSprite2D _sprite;
@@ -46,17 +76,28 @@ public partial class Player : CharacterBody2D
         MoveAndSlide();
         UpdateFacingDirection(input);
         ClampToPlayableArea();
+        UpdateCombo(delta);
     }
 
-    public void EatFood(int amount = 1)
+    public int EatFood(int amount = 1)
+    {
+        return EatFood(amount, null);
+    }
+
+    public int EatFood(int amount, Vector2? worldPosition)
     {
         if (amount <= 0)
         {
-            return;
+            return 0;
         }
 
-        FoodEaten += amount;
-        _foodTowardsNextSize += amount;
+        RegisterCombo();
+        var gainedAmount = Math.Max(1, Mathf.RoundToInt(amount * ComboMultiplier));
+        var popupPosition = worldPosition ?? GlobalPosition;
+
+        FoodEaten += gainedAmount;
+        _foodTowardsNextSize += gainedAmount;
+        EmitSignal(SignalName.FoodGained, gainedAmount, popupPosition);
 
         var grew = false;
 
@@ -76,13 +117,15 @@ public partial class Player : CharacterBody2D
         if (grew)
         {
             ApplySizeScale();
-            _world?.ShowGrowthPopup("<GROWN>", GlobalPosition + new Vector2(0.0f, -32.0f));
+            EmitSignal(SignalName.Grew, "<GROWN>", GlobalPosition + new Vector2(0.0f, -32.0f));
             GD.Print($"Player grew! Size: {Size} (Food eaten: {FoodEaten})");
         }
 
         var needed = GetFoodRequiredForNextSize();
         var remaining = needed - _foodTowardsNextSize;
-        GD.Print($"Ate {amount} food. Progress: {_foodTowardsNextSize}/{needed} — {remaining} more needed to grow.");
+        GD.Print($"Ate {gainedAmount} food. Progress: {_foodTowardsNextSize}/{needed} — {remaining} more needed to grow.");
+        EmitSignal(SignalName.StatsChanged);
+        return gainedAmount;
     }
 
     private int GetFoodRequiredForNextSize()
@@ -98,6 +141,48 @@ public partial class Player : CharacterBody2D
         }
 
         return Math.Max(1, FoodToGrow);
+    }
+
+    private void RegisterCombo()
+    {
+        _comboCount += 1;
+        _comboTimeRemaining = Math.Max(0.1f, GetCurrentComboWindowSeconds());
+
+        if (_comboCount > 1)
+        {
+            EmitSignal(SignalName.ComboTriggered, $"COMBO x{ComboMultiplier:0.0}", GlobalPosition + new Vector2(0.0f, -56.0f));
+        }
+
+        EmitSignal(SignalName.StatsChanged);
+    }
+
+    private void UpdateCombo(double delta)
+    {
+        if (_comboCount <= 0)
+        {
+            return;
+        }
+
+        var previousRatio = ComboTimeRatio;
+        _comboTimeRemaining = Math.Max(0.0, _comboTimeRemaining - delta);
+        if (_comboTimeRemaining > 0.0)
+        {
+            if (_comboCount > 1 && !Mathf.IsEqualApprox(previousRatio, ComboTimeRatio))
+            {
+                EmitSignal(SignalName.StatsChanged);
+            }
+            return;
+        }
+
+        _comboCount = 0;
+        _comboTimeRemaining = 0.0;
+        EmitSignal(SignalName.StatsChanged);
+    }
+
+    private float GetCurrentComboWindowSeconds()
+    {
+        var comboWindow = ComboWindowSeconds + Math.Max(0, _comboCount - 1) * ComboExtraWindowPerChain;
+        return Mathf.Min(comboWindow, MaxComboWindowSeconds);
     }
 
     private void ApplySizeScale()

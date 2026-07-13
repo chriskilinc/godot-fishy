@@ -4,6 +4,8 @@ public partial class GameUI : Control
 {
     private Label _sizeLabel;
     private Label _foodLabel;
+    private Label _comboLabel;
+    private ProgressBar _comboTimerBar;
     private ProgressBar _growthBar;
     private Label _growthLabel;
     private Button _pauseButton;
@@ -13,29 +15,50 @@ public partial class GameUI : Control
     {
         _sizeLabel = GetNodeOrNull<Label>("TopLeft/SizeLabel");
         _foodLabel = GetNodeOrNull<Label>("TopLeft/FoodLabel");
+        _comboLabel = GetNodeOrNull<Label>("TopLeft/ComboLabel");
+        _comboTimerBar = GetNodeOrNull<ProgressBar>("BottomRight/ComboTimerBar");
         _growthBar = GetNodeOrNull<ProgressBar>("GrowthPanel/GrowthBar");
         _growthLabel = GetNodeOrNull<Label>("GrowthPanel/GrowthLabel");
         _pauseButton = GetNodeOrNull<Button>("PauseButton");
         _floatingTextLayer = GetNodeOrNull<Control>("FloatingTextLayer");
 
+        if (_comboTimerBar != null)
+        {
+            _comboTimerBar.SelfModulate = new Color("ff4d4d");
+            _comboTimerBar.ShowPercentage = false;
+        }
+
         ProcessMode = Node.ProcessModeEnum.Always;
         UpdatePauseButtonText();
     }
 
-    public void UpdateStats(int size, int foodEaten, int foodTowardsNextSize, int foodNeededForNextSize)
+    public void UpdateStats(HudStats stats)
     {
         if (_sizeLabel != null)
         {
-            _sizeLabel.Text = $"Size: {size}";
+            _sizeLabel.Text = $"Size: {stats.Size}";
         }
 
         if (_foodLabel != null)
         {
-            _foodLabel.Text = $"Food: {foodEaten}";
+            _foodLabel.Text = $"Food: {stats.FoodEaten}";
         }
 
-        var maxValue = Mathf.Max(1, foodNeededForNextSize);
-        var clampedValue = Mathf.Clamp(foodTowardsNextSize, 0, maxValue);
+        if (_comboLabel != null)
+        {
+            _comboLabel.Text = stats.ComboCount > 1 ? $"Combo: x{stats.ComboMultiplier:0.0}" : "Combo: -";
+            _comboLabel.Visible = stats.ComboCount > 1;
+        }
+
+        if (_comboTimerBar != null)
+        {
+            _comboTimerBar.Visible = stats.ComboCount > 1 && stats.ComboTimeRemaining > 0.0f;
+            _comboTimerBar.MaxValue = 1.0f;
+            _comboTimerBar.Value = stats.ComboTimeRatio;
+        }
+
+        var maxValue = Mathf.Max(1, stats.FoodNeededForNextSize);
+        var clampedValue = Mathf.Clamp(stats.FoodTowardsNextSize, 0, maxValue);
 
         if (_growthBar != null)
         {
@@ -80,6 +103,23 @@ public partial class GameUI : Control
             34,
             new Vector2(0.0f, -48.0f),
             0.9f
+        );
+    }
+
+    public void ShowComboPopup(string text, Vector2 screenPosition)
+    {
+        if (_floatingTextLayer == null || string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        ShowFloatingText(
+            text,
+            screenPosition + new Vector2(-28.0f, -20.0f),
+            new Color("ff7fd1"),
+            28,
+            new Vector2(0.0f, -36.0f),
+            0.75f
         );
     }
 

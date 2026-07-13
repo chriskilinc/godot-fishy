@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cjn2mmcw4fnrr"]
 
-[ext_resource type="Script" path="res://ui/GameUI.cs" id="1_ui"]
+[ext_resource type="Script" uid="uid://72wupsknksm7" path="res://ui/GameUI.cs" id="1_ui"]
 
 [node name="UI" type="Control" unique_id=983928655]
 process_mode = 3
@@ -8,60 +8,93 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 0.0
-offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_ui")
 
-[node name="FloatingTextLayer" type="Control" parent="."]
+[node name="FloatingTextLayer" type="Control" parent="." unique_id=855649027]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 0.0
-offset_bottom = 0.0
+offset_left = -2.0
+offset_top = -5.0
+offset_right = -2.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="TopLeft" type="VBoxContainer" parent="."]
+[node name="TopLeft" type="VBoxContainer" parent="." unique_id=95622305]
 layout_mode = 1
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 240.0
 offset_bottom = 84.0
 
-[node name="SizeLabel" type="Label" parent="TopLeft"]
+[node name="SizeLabel" type="Label" parent="TopLeft" unique_id=296846888]
 layout_mode = 2
 text = "Size: 1"
 
-[node name="FoodLabel" type="Label" parent="TopLeft"]
+[node name="FoodLabel" type="Label" parent="TopLeft" unique_id=1943302436]
 layout_mode = 2
 text = "Food: 0"
 
-[node name="GrowthPanel" type="VBoxContainer" parent="."]
+[node name="ComboLabel" type="Label" parent="TopLeft" unique_id=1016279213]
+visible = false
+layout_mode = 2
+text = "Combo: -"
+
+[node name="GrowthPanel" type="VBoxContainer" parent="." unique_id=789543817]
 layout_mode = 1
+anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -160.0
 offset_top = 16.0
 offset_right = 160.0
 offset_bottom = 76.0
+grow_horizontal = 2
 
-[node name="GrowthLabel" type="Label" parent="GrowthPanel"]
+[node name="GrowthLabel" type="Label" parent="GrowthPanel" unique_id=1970525758]
 layout_mode = 2
-horizontal_alignment = 1
 text = "Growth: 0/10"
+horizontal_alignment = 1
 
-[node name="GrowthBar" type="ProgressBar" parent="GrowthPanel"]
+[node name="GrowthBar" type="ProgressBar" parent="GrowthPanel" unique_id=2028291217]
 layout_mode = 2
 max_value = 10.0
 
-[node name="PauseButton" type="Button" parent="."]
+[node name="PauseButton" type="Button" parent="." unique_id=1769526700]
 layout_mode = 1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -120.0
 offset_top = 16.0
 offset_right = -16.0
 offset_bottom = 48.0
+grow_horizontal = 0
 text = "Pause"
+
+[node name="BottomRight" type="MarginContainer" parent="." unique_id=19585933]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -88.0
+offset_top = -18.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ComboTimerBar" type="ProgressBar" parent="BottomRight" unique_id=430385962]
+visible = false
+layout_mode = 2
+value = 1.0
+show_percentage = false
 
 [connection signal="pressed" from="PauseButton" to="." method="_OnPausePressed"]

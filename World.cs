@@ -50,6 +50,14 @@ public partial class World : Node2D
         _player = GetNodeOrNull<Player>("Player");
         _ui = GetNodeOrNull<GameUI>("CanvasLayer/UI");
 
+        if (_player != null)
+        {
+            _player.StatsChanged += OnPlayerStatsChanged;
+            _player.FoodGained += OnPlayerFoodGained;
+            _player.Grew += OnPlayerGrew;
+            _player.ComboTriggered += OnPlayerComboTriggered;
+        }
+
         UpdateHud();
 
         if (Engine.IsEditorHint())
@@ -65,14 +73,15 @@ public partial class World : Node2D
         }
     }
 
-    public override void _Process(double delta)
+    public override void _ExitTree()
     {
-        if (Engine.IsEditorHint())
+        if (_player != null)
         {
-            return;
+            _player.StatsChanged -= OnPlayerStatsChanged;
+            _player.FoodGained -= OnPlayerFoodGained;
+            _player.Grew -= OnPlayerGrew;
+            _player.ComboTriggered -= OnPlayerComboTriggered;
         }
-
-        UpdateHud();
     }
 
     public override void _Draw()
@@ -145,6 +154,37 @@ public partial class World : Node2D
         _ui.ShowGrowthPopup(text, screenPosition);
     }
 
+    public void ShowComboPopup(string text, Vector2 worldPosition)
+    {
+        if (_ui == null || string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        var screenPosition = GetViewport().GetCanvasTransform() * worldPosition;
+        _ui.ShowComboPopup(text, screenPosition);
+    }
+
+    private void OnPlayerStatsChanged()
+    {
+        UpdateHud();
+    }
+
+    private void OnPlayerFoodGained(int amount, Vector2 worldPosition)
+    {
+        ShowFoodPopup(amount, worldPosition);
+    }
+
+    private void OnPlayerGrew(string text, Vector2 worldPosition)
+    {
+        ShowGrowthPopup(text, worldPosition);
+    }
+
+    private void OnPlayerComboTriggered(string text, Vector2 worldPosition)
+    {
+        ShowComboPopup(text, worldPosition);
+    }
+
     private void UpdateHud()
     {
         if (_player == null || _ui == null)
@@ -152,11 +192,16 @@ public partial class World : Node2D
             return;
         }
 
-        _ui.UpdateStats(
-            _player.Size,
-            _player.FoodEaten,
-            _player.FoodTowardsNextSize,
-            _player.FoodNeededForNextSize
-        );
+        _ui.UpdateStats(new HudStats
+        {
+            Size = _player.Size,
+            FoodEaten = _player.FoodEaten,
+            FoodTowardsNextSize = _player.FoodTowardsNextSize,
+            FoodNeededForNextSize = _player.FoodNeededForNextSize,
+            ComboCount = _player.ComboCount,
+            ComboMultiplier = _player.ComboMultiplier,
+            ComboTimeRemaining = _player.ComboTimeRemaining,
+            ComboTimeRatio = _player.ComboTimeRatio
+        });
     }
 }
