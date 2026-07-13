@@ -17,6 +17,42 @@ public partial class Player : CharacterBody2D
 
     [Export]
     public float Speed = 200.0f;
+
+    [Export]
+    public float Acceleration = 900.0f;
+
+    [Export]
+    public float Deceleration = 700.0f;
+
+    [Export]
+    public float CoastDecelerationMultiplier = 0.35f;
+
+    [Export]
+    public float WaterDrag = 1.6f;
+
+    [Export]
+    public float InputSmoothing = 10.0f;
+
+    [Export]
+    public float ReleaseInputSmoothingMultiplier = 0.3f;
+
+    [Export]
+    public float TurnResponsiveness = 8.0f;
+
+    [Export]
+    public float MinTurnSpeed = 20.0f;
+
+    [Export]
+    public float BodySwayAmount = 0.06f;
+
+    [Export]
+    public float BodySwaySpeed = 12.0f;
+
+    [Export]
+    public float MaxTiltDegrees = 16.0f;
+
+    [Export]
+    public float TiltResponsiveness = 10.0f;
     
     [Export]
     public int Size = 1;
@@ -62,6 +98,9 @@ public partial class Player : CharacterBody2D
     private World _world;
     private CollisionShape2D _collisionShape;
     private AnimatedSprite2D _sprite;
+    private Vector2 _smoothedInput = Vector2.Zero;
+    private float _swimTime = 0.0f;
+    private float _visualTilt = 0.0f;
 
     public override void _Ready()
     {
@@ -73,13 +112,32 @@ public partial class Player : CharacterBody2D
 
     public override void _Process(double delta)
     {
-        // Player Movement
-        var input = Input.GetVector("move_left", "move_right", "move_up", "move_down").Normalized();
-        Velocity = input * Speed;
-        MoveAndSlide();
-        UpdateFacingDirection(input);
-        ClampToPlayableArea();
         UpdateCombo(delta);
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        var dt = (float)delta;
+        var rawInput = Input.GetVector("move_left", "move_right", "move_up", "move_down");
+        var hasInput = rawInput.LengthSquared() > 0.0001f;
+
+        var releaseSmoothing = InputSmoothing * Mathf.Max(0.01f, ReleaseInputSmoothingMultiplier);
+        var smoothing = hasInput ? InputSmoothing : releaseSmoothing;
+        var inputLerpWeight = 1.0f - Mathf.Exp(-smoothing * dt);
+        _smoothedInput = _smoothedInput.Lerp(rawInput, inputLerpWeight);
+
+        var targetVelocity = _smoothedInput * Speed;
+        var coastDeceleration = Deceleration * Mathf.Max(0.0f, CoastDecelerationMultiplier);
+        var accelerationRate = hasInput ? Acceleration : coastDeceleration;
+        Velocity = Velocity.MoveToward(targetVelocity, accelerationRate * dt);
+
+        // Apply water drag as a frame-rate independent damping force.
+        var dragFactor = Mathf.Clamp(WaterDrag * dt, 0.0f, 1.0f);
+        Velocity -= Velocity * dragFactor;
+
+        MoveAndSlide();
+        ClampToPlayableArea();
+        UpdateSwimmingVisuals(dt);
     }
 
     public int EatFood(int amount = 1)
@@ -236,13 +294,30 @@ public partial class Player : CharacterBody2D
         );
     }
 
-    private void UpdateFacingDirection(Vector2 input)
+    private void UpdateSwimmingVisuals(float dt)
     {
-        if (_sprite == null || Mathf.IsZeroApprox(input.X))
+        if (_sprite == null)
         {
             return;
         }
 
-        _sprite.FlipH = input.X < 0.0f;
+        var speed = Velocity.Length();
+        if (speed > MinTurnSpeed && Mathf.Abs(Velocity.X) > 0.01f)
+        {
+            _sprite.FlipH = Velocity.X < 0.0f;
+        }
+
+        var speedRatio = Mathf.Clamp(speed / Mathf.Max(1.0f, Speed), 0.0f, 1.0f);
+        var facingSign = _sprite.FlipH ? -1.0f : 1.0f;
+        var targetTilt = Mathf.Clamp(Velocity.Y / Mathf.Max(1.0f, Speed), -1.0f, 1.0f)
+            * Mathf.DegToRad(MaxTiltDegrees)
+            * facingSign;
+        var tiltLerpWeight = 1.0f - Mathf.Exp(-TiltResponsiveness * dt);
+        _visualTilt = Mathf.Lerp(_visualTilt, targetTilt, tiltLerpWeight);
+
+        _swimTime += dt * BodySwaySpeed * (0.35f + speedRatio);
+        var bodySway = Mathf.Sin(_swimTime) * BodySwayAmount * speedRatio;
+
+        _sprite.Rotation = _visualTilt + bodySway;
     }
 }
