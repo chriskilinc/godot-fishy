@@ -45,13 +45,16 @@ public partial class Player : CharacterBody2D
     [Export]
     public float MaxComboWindowSeconds = 1.5f;
 
+    [Export]
+    public bool ComboEnabled = false;
+
     public int FoodEaten { get; private set; } = 0;
     public int FoodTowardsNextSize => _foodTowardsNextSize;
     public int FoodNeededForNextSize => GetFoodRequiredForNextSize();
-    public int ComboCount => _comboCount;
-    public float ComboMultiplier => 1.0f + Math.Max(0, _comboCount - 1) * ComboBonusPerChain;
-    public float ComboTimeRemaining => (float)_comboTimeRemaining;
-    public float ComboTimeRatio => GetCurrentComboWindowSeconds() > 0.0f ? Mathf.Clamp((float)(_comboTimeRemaining / GetCurrentComboWindowSeconds()), 0.0f, 1.0f) : 0.0f;
+    public int ComboCount => ComboEnabled ? _comboCount : 0;
+    public float ComboMultiplier => ComboEnabled ? 1.0f + Math.Max(0, _comboCount - 1) * ComboBonusPerChain : 1.0f;
+    public float ComboTimeRemaining => ComboEnabled ? (float)_comboTimeRemaining : 0.0f;
+    public float ComboTimeRatio => ComboEnabled && GetCurrentComboWindowSeconds() > 0.0f ? Mathf.Clamp((float)(_comboTimeRemaining / GetCurrentComboWindowSeconds()), 0.0f, 1.0f) : 0.0f;
 
     private int _foodTowardsNextSize = 0;
     private int _comboCount = 0;
@@ -145,6 +148,11 @@ public partial class Player : CharacterBody2D
 
     private void RegisterCombo()
     {
+        if (!ComboEnabled)
+        {
+            return;
+        }
+
         _comboCount += 1;
         _comboTimeRemaining = Math.Max(0.1f, GetCurrentComboWindowSeconds());
 
@@ -158,6 +166,17 @@ public partial class Player : CharacterBody2D
 
     private void UpdateCombo(double delta)
     {
+        if (!ComboEnabled)
+        {
+            if (_comboCount != 0 || _comboTimeRemaining > 0.0)
+            {
+                _comboCount = 0;
+                _comboTimeRemaining = 0.0;
+                EmitSignal(SignalName.StatsChanged);
+            }
+            return;
+        }
+
         if (_comboCount <= 0)
         {
             return;
