@@ -58,6 +58,7 @@ public partial class EnemyFish : Area2D
                 // Player is bigger than enemy fish, player eats the enemy fish
                 GD.Print("Enemy fish has been eaten!");
                 player.EatFood(FoodValue);
+                GetParentOrNull<World>()?.ShowFoodPopup(FoodValue, GlobalPosition);
                 QueueFree(); // Remove the enemy fish from the scene
                 // You can add logic to increase player's size here
             }

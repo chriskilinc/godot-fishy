@@ -1,0 +1,67 @@
+[gd_scene format=3 uid="uid://cjn2mmcw4fnrr"]
+
+[ext_resource type="Script" path="res://ui/GameUI.cs" id="1_ui"]
+
+[node name="UI" type="Control" unique_id=983928655]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+script = ExtResource("1_ui")
+
+[node name="FloatingTextLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+
+[node name="TopLeft" type="VBoxContainer" parent="."]
+layout_mode = 1
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 240.0
+offset_bottom = 84.0
+
+[node name="SizeLabel" type="Label" parent="TopLeft"]
+layout_mode = 2
+text = "Size: 1"
+
+[node name="FoodLabel" type="Label" parent="TopLeft"]
+layout_mode = 2
+text = "Food: 0"
+
+[node name="GrowthPanel" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -160.0
+offset_top = 16.0
+offset_right = 160.0
+offset_bottom = 76.0
+
+[node name="GrowthLabel" type="Label" parent="GrowthPanel"]
+layout_mode = 2
+horizontal_alignment = 1
+text = "Growth: 0/10"
+
+[node name="GrowthBar" type="ProgressBar" parent="GrowthPanel"]
+layout_mode = 2
+max_value = 10.0
+
+[node name="PauseButton" type="Button" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -120.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 48.0
+text = "Pause"
+
+[connection signal="pressed" from="PauseButton" to="." method="_OnPausePressed"]

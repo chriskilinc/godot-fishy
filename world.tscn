@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://tob4ox45b85k" path="res://player/player.tscn" id="1_f3sb7"]
 [ext_resource type="Script" uid="uid://b287c2gouauog" path="res://World.cs" id="1_world"]
 [ext_resource type="PackedScene" uid="uid://i3svo3od2gvg" path="res://fish/fish.tscn" id="2_fj7yv"]
+[ext_resource type="PackedScene" uid="uid://cjn2mmcw4fnrr" path="res://ui.tscn" id="4_aqk2v"]
 
 [node name="World" type="Node2D" unique_id=1021918435]
 script = ExtResource("1_world")
@@ -11,3 +12,7 @@ SpawnAreaMax = Vector2(1000, 500)
 
 [node name="Player" parent="." unique_id=434732959 instance=ExtResource("1_f3sb7")]
 position = Vector2(589, 344)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="UI" parent="CanvasLayer" unique_id=983928655 instance=ExtResource("4_aqk2v")]

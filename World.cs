@@ -40,10 +40,17 @@ public partial class World : Node2D
     private RandomNumberGenerator _rng = new RandomNumberGenerator();
     private Vector2 _spawnAreaMin = new Vector2(0, 0);
     private Vector2 _spawnAreaMax = new Vector2(2000, 1000);
+    private Player _player;
+    private GameUI _ui;
 
     public override void _Ready()
     {
         QueueRedraw();
+
+        _player = GetNodeOrNull<Player>("Player");
+        _ui = GetNodeOrNull<GameUI>("CanvasLayer/UI");
+
+        UpdateHud();
 
         if (Engine.IsEditorHint())
         {
@@ -56,6 +63,16 @@ public partial class World : Node2D
         {
             SpawnFish();
         }
+    }
+
+    public override void _Process(double delta)
+    {
+        if (Engine.IsEditorHint())
+        {
+            return;
+        }
+
+        UpdateHud();
     }
 
     public override void _Draw()
@@ -104,5 +121,42 @@ public partial class World : Node2D
 
         // When this fish leaves the tree (eaten or otherwise freed), spawn a replacement
         fish.TreeExited += SpawnFish;
+    }
+
+    public void ShowFoodPopup(int amount, Vector2 worldPosition)
+    {
+        if (_ui == null || amount <= 0)
+        {
+            return;
+        }
+
+        var screenPosition = GetViewport().GetCanvasTransform() * worldPosition;
+        _ui.ShowFoodPopup(amount, screenPosition);
+    }
+
+    public void ShowGrowthPopup(string text, Vector2 worldPosition)
+    {
+        if (_ui == null || string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        var screenPosition = GetViewport().GetCanvasTransform() * worldPosition;
+        _ui.ShowGrowthPopup(text, screenPosition);
+    }
+
+    private void UpdateHud()
+    {
+        if (_player == null || _ui == null)
+        {
+            return;
+        }
+
+        _ui.UpdateStats(
+            _player.Size,
+            _player.FoodEaten,
+            _player.FoodTowardsNextSize,
+            _player.FoodNeededForNextSize
+        );
     }
 }

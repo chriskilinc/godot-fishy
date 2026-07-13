@@ -22,6 +22,8 @@ public partial class Player : CharacterBody2D
     public float GrowthPerLevel = 0.1f;
 
     public int FoodEaten { get; private set; } = 0;
+    public int FoodTowardsNextSize => _foodTowardsNextSize;
+    public int FoodNeededForNextSize => GetFoodRequiredForNextSize();
 
     private int _foodTowardsNextSize = 0;
     private World _world;
@@ -74,6 +76,7 @@ public partial class Player : CharacterBody2D
         if (grew)
         {
             ApplySizeScale();
+            _world?.ShowGrowthPopup("<GROWN>", GlobalPosition + new Vector2(0.0f, -32.0f));
             GD.Print($"Player grew! Size: {Size} (Food eaten: {FoodEaten})");
         }
 
