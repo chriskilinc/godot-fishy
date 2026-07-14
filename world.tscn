@@ -13,6 +13,6 @@ SpawnAreaMax = Vector2(1000, 500)
 [node name="Player" parent="." unique_id=434732959 instance=ExtResource("1_f3sb7")]
 position = Vector2(589, 344)
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1315028800]
 
 [node name="UI" parent="CanvasLayer" unique_id=983928655 instance=ExtResource("4_aqk2v")]

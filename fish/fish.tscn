@@ -231,13 +231,16 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_b54v7")
 }],
-"loop": true,
+"loop": 1,
 "name": &"default",
 "speed": 5.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xu20i"]
 size = Vector2(11, 12)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_avoidance"]
+radius = 100.0
 
 [node name="Fish" type="Area2D" unique_id=2132471368]
 script = ExtResource("1_sgogb")
@@ -256,4 +259,11 @@ frame_progress = 0.103795834
 position = Vector2(1.5, 0)
 shape = SubResource("RectangleShape2D_xu20i")
 
+[node name="AvoidanceSensor" type="Area2D" parent="." unique_id=624602061]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AvoidanceSensor" unique_id=464880783]
+shape = SubResource("CircleShape2D_avoidance")
+
 [connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="body_entered" from="AvoidanceSensor" to="." method="_on_avoidance_sensor_body_entered"]
+[connection signal="body_exited" from="AvoidanceSensor" to="." method="_on_avoidance_sensor_body_exited"]
