@@ -53,6 +53,15 @@ public partial class Player : CharacterBody2D
 
     [Export]
     public float TiltResponsiveness = 10.0f;
+
+    [Export]
+    public float CameraZoomStep = 0.2f;
+
+    [Export]
+    public float MinCameraZoom = 1.0f;
+
+    [Export]
+    public float MaxCameraZoom = 4.0f;
     
     [Export]
     public int Size = 1;
@@ -98,6 +107,7 @@ public partial class Player : CharacterBody2D
     private World _world;
     private CollisionShape2D _collisionShape;
     private AnimatedSprite2D _sprite;
+    private Camera2D _camera;
     private Vector2 _smoothedInput = Vector2.Zero;
     private float _swimTime = 0.0f;
     private float _visualTilt = 0.0f;
@@ -107,7 +117,27 @@ public partial class Player : CharacterBody2D
         _world = GetParentOrNull<World>();
         _collisionShape = GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
         _sprite = GetNodeOrNull<AnimatedSprite2D>("Sprite");
+        _camera = GetNodeOrNull<Camera2D>("Camera2D");
         ApplySizeScale();
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (_camera == null || @event is not InputEventMouseButton mouseButton || !mouseButton.Pressed)
+        {
+            return;
+        }
+
+        if (mouseButton.ButtonIndex == MouseButton.WheelDown)
+        {
+            UpdateCameraZoom(-CameraZoomStep);
+            GetViewport().SetInputAsHandled();
+        }
+        else if (mouseButton.ButtonIndex == MouseButton.WheelUp)
+        {
+            UpdateCameraZoom(CameraZoomStep);
+            GetViewport().SetInputAsHandled();
+        }
     }
 
     public override void _Process(double delta)
@@ -319,5 +349,16 @@ public partial class Player : CharacterBody2D
         var bodySway = Mathf.Sin(_swimTime) * BodySwayAmount * speedRatio;
 
         _sprite.Rotation = _visualTilt + bodySway;
+    }
+
+    private void UpdateCameraZoom(float delta)
+    {
+        if (_camera == null)
+        {
+            return;
+        }
+
+        var nextZoom = Mathf.Clamp(_camera.Zoom.X + delta, MinCameraZoom, MaxCameraZoom);
+        _camera.Zoom = new Vector2(nextZoom, nextZoom);
     }
 }

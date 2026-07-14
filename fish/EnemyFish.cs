@@ -25,6 +25,15 @@ public partial class EnemyFish : Area2D
     public float AvoidStrengthMultiplier { get; set; } = 1.8f;
 
     [Export]
+    public float AvoidSpeedBoostMultiplier { get; set; } = 1.45f;
+
+    [Export]
+    public float AvoidSpeedBoostDuration { get; set; } = 0.45f;
+
+    [Export]
+    public float AvoidSpeedBoostCooldown { get; set; } = 1.4f;
+
+    [Export]
     public float BoundsPadding { get; set; } = 16.0f;
 
     [Export]
@@ -50,6 +59,8 @@ public partial class EnemyFish : Area2D
     private Vector2 _direction = Vector2.Right;
     private float _wanderTimer = 0.0f;
     private float _idlePauseTimer = 0.0f;
+    private float _avoidSpeedBoostTimer = 0.0f;
+    private float _avoidSpeedBoostCooldownTimer = 0.0f;
     private bool _playerInAvoidanceRange = false;
 
     public override void _Ready()
@@ -67,6 +78,9 @@ public partial class EnemyFish : Area2D
     {
         var dt = (float)delta;
 
+        _avoidSpeedBoostTimer = Mathf.Max(0.0f, _avoidSpeedBoostTimer - dt);
+        _avoidSpeedBoostCooldownTimer = Mathf.Max(0.0f, _avoidSpeedBoostCooldownTimer - dt);
+
         if (UpdateIdlePause(dt))
         {
             UpdateVisualFacing();
@@ -82,7 +96,8 @@ public partial class EnemyFish : Area2D
             _direction = GetRandomDirection();
         }
 
-        GlobalPosition += _direction * Speed * dt;
+        var movementSpeed = GetCurrentMovementSpeed();
+        GlobalPosition += _direction * movementSpeed * dt;
         KeepInsidePlayableArea();
         UpdateVisualFacing();
     }
@@ -200,7 +215,37 @@ public partial class EnemyFish : Area2D
         }
 
         var strength = 1.0f - (distance / Mathf.Max(1.0f, avoidanceRadius));
+        TryTriggerAvoidSpeedBoost();
         return offsetFromPlayer.Normalized() * strength * Mathf.Max(0.0f, AvoidStrengthMultiplier);
+    }
+
+    private void TryTriggerAvoidSpeedBoost()
+    {
+        if (_avoidSpeedBoostTimer > 0.0f || _avoidSpeedBoostCooldownTimer > 0.0f)
+        {
+            return;
+        }
+
+        var duration = Mathf.Max(0.0f, AvoidSpeedBoostDuration);
+        if (duration <= 0.0f)
+        {
+            return;
+        }
+
+        _avoidSpeedBoostTimer = duration;
+        _avoidSpeedBoostCooldownTimer = Mathf.Max(0.0f, AvoidSpeedBoostCooldown);
+    }
+
+    private float GetCurrentMovementSpeed()
+    {
+        var baseSpeed = Mathf.Max(0.0f, Speed);
+        if (_avoidSpeedBoostTimer <= 0.0f)
+        {
+            return baseSpeed;
+        }
+
+        var boostMultiplier = Mathf.Max(1.0f, AvoidSpeedBoostMultiplier);
+        return baseSpeed * boostMultiplier;
     }
 
     private float GetAvoidanceRadius()

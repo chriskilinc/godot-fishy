@@ -240,7 +240,7 @@ animations = [{
 size = Vector2(11, 12)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_avoidance"]
-radius = 100.0
+radius = 150.0
 
 [node name="Fish" type="Area2D" unique_id=2132471368]
 script = ExtResource("1_sgogb")
