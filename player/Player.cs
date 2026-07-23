@@ -62,7 +62,37 @@ public partial class Player : CharacterBody2D
 
     [Export]
     public float MaxCameraZoom = 4.0f;
-    
+
+    [Export]
+    public PackedScene TinyBubbleScene;
+
+    [Export]
+    public float BubbleSpawnMinInterval = 1.2f;
+
+    [Export]
+    public float BubbleSpawnMaxInterval = 2.8f;
+
+    [Export(PropertyHint.Range, "0,1,0.01")]
+    public float BubbleSpawnChance = 0.55f;
+
+    [Export]
+    public float BubbleTurnSpawnCooldown = 0.35f;
+
+    [Export(PropertyHint.Range, "0,1,0.01")]
+    public float BubbleIdleSpawnChance = 0.12f;
+
+    [Export]
+    public float BubbleTailOffsetX = 14.0f;
+
+    [Export]
+    public float BubbleTailOffsetY = 1.0f;
+
+    [Export]
+    public float BubbleSpawnJitterX = 3.0f;
+
+    [Export]
+    public float BubbleSpawnJitterY = 2.0f;
+
     [Export]
     public int Size = 1;
 
@@ -111,6 +141,9 @@ public partial class Player : CharacterBody2D
     private Vector2 _smoothedInput = Vector2.Zero;
     private float _swimTime = 0.0f;
     private float _visualTilt = 0.0f;
+    private float _bubbleSpawnTimer = 0.0f;
+    private float _bubbleTurnSpawnCooldownRemaining = 0.0f;
+    private readonly RandomNumberGenerator _bubbleRng = new();
 
     public override void _Ready()
     {
@@ -118,6 +151,9 @@ public partial class Player : CharacterBody2D
         _collisionShape = GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
         _sprite = GetNodeOrNull<AnimatedSprite2D>("Sprite");
         _camera = GetNodeOrNull<Camera2D>("Camera2D");
+        TinyBubbleScene ??= GD.Load<PackedScene>("res://effects/tiny_bubble.tscn");
+        _bubbleRng.Randomize();
+        ResetBubbleSpawnTimer();
         ApplySizeScale();
     }
 
@@ -148,6 +184,7 @@ public partial class Player : CharacterBody2D
     public override void _PhysicsProcess(double delta)
     {
         var dt = (float)delta;
+        _bubbleTurnSpawnCooldownRemaining = Math.Max(0.0f, _bubbleTurnSpawnCooldownRemaining - dt);
         var rawInput = Input.GetVector("move_left", "move_right", "move_up", "move_down");
         var hasInput = rawInput.LengthSquared() > 0.0001f;
 
@@ -168,6 +205,7 @@ public partial class Player : CharacterBody2D
         MoveAndSlide();
         ClampToPlayableArea();
         UpdateSwimmingVisuals(dt);
+        UpdateTinyBubbleSpawning(dt);
     }
 
     public int EatFood(int amount = 1)
@@ -332,9 +370,16 @@ public partial class Player : CharacterBody2D
         }
 
         var speed = Velocity.Length();
+        var wasFacingLeft = _sprite.FlipH;
         if (speed > MinTurnSpeed && Mathf.Abs(Velocity.X) > 0.01f)
         {
-            _sprite.FlipH = Velocity.X < 0.0f;
+            var isFacingLeft = Velocity.X < 0.0f;
+            _sprite.FlipH = isFacingLeft;
+            if (isFacingLeft != wasFacingLeft && _bubbleTurnSpawnCooldownRemaining <= 0.0f && _bubbleRng.Randf() <= BubbleSpawnChance)
+            {
+                SpawnTinyBubble();
+                _bubbleTurnSpawnCooldownRemaining = BubbleTurnSpawnCooldown;
+            }
         }
 
         var speedRatio = Mathf.Clamp(speed / Mathf.Max(1.0f, Speed), 0.0f, 1.0f);
@@ -360,5 +405,53 @@ public partial class Player : CharacterBody2D
 
         var nextZoom = Mathf.Clamp(_camera.Zoom.X + delta, MinCameraZoom, MaxCameraZoom);
         _camera.Zoom = new Vector2(nextZoom, nextZoom);
+    }
+
+    private void UpdateTinyBubbleSpawning(float dt)
+    {
+        if (TinyBubbleScene == null || GetParent() == null)
+            return;
+
+        var isStill = Velocity.LengthSquared() <= MinTurnSpeed * MinTurnSpeed && _smoothedInput.LengthSquared() <= 0.0001f;
+        if (!isStill)
+        {
+            ResetBubbleSpawnTimer();
+            return;
+        }
+
+        _bubbleSpawnTimer -= dt;
+        if (_bubbleSpawnTimer > 0.0f)
+            return;
+
+        if (_bubbleRng.Randf() <= BubbleIdleSpawnChance)
+            SpawnTinyBubble();
+
+        ResetBubbleSpawnTimer();
+    }
+
+    private void SpawnTinyBubble()
+    {
+        if (TinyBubbleScene == null)
+            return;
+
+        var bubbleNode = TinyBubbleScene.Instantiate<Node2D>();
+        if (bubbleNode == null)
+            return;
+
+        var facingSign = _sprite != null && _sprite.FlipH ? -1.0f : 1.0f;
+        var jitter = new Vector2(
+            _bubbleRng.RandfRange(-BubbleSpawnJitterX, BubbleSpawnJitterX),
+            _bubbleRng.RandfRange(-BubbleSpawnJitterY, BubbleSpawnJitterY)
+        );
+
+        bubbleNode.GlobalPosition = GlobalPosition + new Vector2(-facingSign * BubbleTailOffsetX, BubbleTailOffsetY) + jitter;
+        GetParent().AddChild(bubbleNode);
+    }
+
+    private void ResetBubbleSpawnTimer()
+    {
+        var minInterval = Mathf.Max(0.01f, BubbleSpawnMinInterval);
+        var maxInterval = Mathf.Max(minInterval, BubbleSpawnMaxInterval);
+        _bubbleSpawnTimer = _bubbleRng.RandfRange(minInterval, maxInterval);
     }
 }
