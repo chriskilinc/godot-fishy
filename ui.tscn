@@ -1,6 +1,13 @@
 [gd_scene format=3 uid="uid://cjn2mmcw4fnrr"]
 
 [ext_resource type="Script" uid="uid://72wupsknksm7" path="res://ui/GameUI.cs" id="1_ui"]
+[ext_resource type="Texture2D" uid="uid://bak3rkec3niid" path="res://assets/Border.png" id="2_m6e0p"]
+
+[sub_resource type="Gradient" id="Gradient_27fn8"]
+colors = PackedColorArray(0.1569, 0.7216, 0.3059, 1, 0.3098, 0.8392, 0.4353, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_2ejlt"]
+gradient = SubResource("Gradient_27fn8")
 
 [node name="UI" type="Control" unique_id=983928655]
 process_mode = 3
@@ -52,16 +59,30 @@ offset_right = 160.0
 offset_bottom = 76.0
 grow_horizontal = 2
 
-[node name="GrowthLabel" type="Label" parent="GrowthPanel" unique_id=1970525758]
-layout_mode = 2
-text = "Growth: 0/10"
-horizontal_alignment = 1
-
-[node name="GrowthBar" type="ProgressBar" parent="GrowthPanel" unique_id=2028291217]
+[node name="GrowthBar" type="TextureProgressBar" parent="GrowthPanel" unique_id=327666859]
 layout_mode = 2
 max_value = 10.0
+nine_patch_stretch = true
+stretch_margin_left = 15
+stretch_margin_top = 15
+stretch_margin_right = 15
+stretch_margin_bottom = 15
+texture_over = ExtResource("2_m6e0p")
+texture_progress = SubResource("GradientTexture1D_2ejlt")
+
+[node name="GrowthLabel" type="Label" parent="GrowthPanel/GrowthBar" unique_id=1970525758]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "0/10"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="PauseButton" type="Button" parent="." unique_id=1769526700]
+visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0

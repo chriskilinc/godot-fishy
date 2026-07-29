@@ -177,7 +177,8 @@ public partial class World : Node2D
 
     private void OnPlayerGrew(string text, Vector2 worldPosition)
     {
-        ShowGrowthPopup(text, worldPosition);
+        _ui?.PlayGrowthBarEffect();
+        // ShowGrowthPopup(text, worldPosition); // Text on player when grown - change text in player.cs
     }
 
     private void OnPlayerComboTriggered(string text, Vector2 worldPosition)

@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 public partial class GameUI : Control
@@ -6,7 +7,7 @@ public partial class GameUI : Control
     private Label _foodLabel;
     private Label _comboLabel;
     private ProgressBar _comboTimerBar;
-    private ProgressBar _growthBar;
+    private TextureProgressBar _growthBar;
     private Label _growthLabel;
     private Button _pauseButton;
     private Control _floatingTextLayer;
@@ -17,8 +18,8 @@ public partial class GameUI : Control
         _foodLabel = GetNodeOrNull<Label>("TopLeft/FoodLabel");
         _comboLabel = GetNodeOrNull<Label>("TopLeft/ComboLabel");
         _comboTimerBar = GetNodeOrNull<ProgressBar>("BottomRight/ComboTimerBar");
-        _growthBar = GetNodeOrNull<ProgressBar>("GrowthPanel/GrowthBar");
-        _growthLabel = GetNodeOrNull<Label>("GrowthPanel/GrowthLabel");
+        _growthBar = GetNodeOrNull<TextureProgressBar>("GrowthPanel/GrowthBar");
+        _growthLabel = GetNodeOrNull<Label>("GrowthPanel/GrowthBar/GrowthLabel");
         _pauseButton = GetNodeOrNull<Button>("PauseButton");
         _floatingTextLayer = GetNodeOrNull<Control>("FloatingTextLayer");
 
@@ -28,8 +29,52 @@ public partial class GameUI : Control
             _comboTimerBar.ShowPercentage = false;
         }
 
-        ProcessMode = Node.ProcessModeEnum.Always;
+        ProcessMode = ProcessModeEnum.Always;
         UpdatePauseButtonText();
+    }
+
+    public void PlayGrowthBarEffect()
+    {
+        if (_growthBar == null)
+        {
+            return;
+        }
+
+        var flashOverlay = new ColorRect
+        {
+            Color = new Color(0.65f, 1.0f, 0.95f, 0.0f),
+            MouseFilter = MouseFilterEnum.Ignore,
+            ZIndex = 5,
+            AnchorRight = 1.0f,
+            AnchorBottom = 1.0f,
+            OffsetLeft = 0.0f,
+            OffsetTop = 0.0f,
+            OffsetRight = 0.0f,
+            OffsetBottom = 0.0f
+        };
+        _growthBar.AddChild(flashOverlay);
+
+        var flashTween = CreateTween();
+        flashTween.TweenProperty(flashOverlay, "color:a", 0.4f, 0.1f)
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.Out);
+        flashTween.TweenProperty(flashOverlay, "color:a", 0.0f, 0.22f)
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.In);
+        flashTween.Finished += flashOverlay.QueueFree;
+
+        if (_floatingTextLayer != null)
+        {
+            var barCenter = _growthBar.GetGlobalRect().GetCenter();
+            ShowFloatingText(
+                "GROWTH!",
+                barCenter + new Vector2(-44.0f, -8.0f),
+                new Color("9ffcff"),
+                22,
+                new Vector2(0.0f, -20.0f),
+                0.5f
+            );
+        }
     }
 
     public void UpdateStats(HudStats stats)
@@ -68,7 +113,7 @@ public partial class GameUI : Control
 
         if (_growthLabel != null)
         {
-            _growthLabel.Text = $"Growth: {clampedValue}/{maxValue}";
+            _growthLabel.Text = $"{clampedValue}/{maxValue}";
         }
     }
 
