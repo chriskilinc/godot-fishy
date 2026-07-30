@@ -47,6 +47,19 @@ public partial class World : Node2D
     {
         QueueRedraw();
 
+        // Spawn background first so it renders behind everything
+        if (!Engine.IsEditorHint())
+        {
+            var background = new Background
+            {
+                Name = "Background",
+                AreaMin = SpawnAreaMin,
+                AreaMax = SpawnAreaMax,
+            };
+            AddChild(background);
+            MoveChild(background, 0);
+        }
+
         _player = GetNodeOrNull<Player>("Player");
         _ui = GetNodeOrNull<GameUI>("CanvasLayer/UI");
 
