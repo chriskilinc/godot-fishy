@@ -42,6 +42,7 @@ public partial class World : Node2D
     private Vector2 _spawnAreaMax = new Vector2(2000, 1000);
     private Player _player;
     private GameUI _ui;
+    private SoundManager _soundManager;
 
     public override void _Ready()
     {
@@ -62,6 +63,7 @@ public partial class World : Node2D
 
         _player = GetNodeOrNull<Player>("Player");
         _ui = GetNodeOrNull<GameUI>("CanvasLayer/UI");
+        _soundManager = GetNodeOrNull<SoundManager>("SoundManager");
 
         if (_player != null)
         {
@@ -77,6 +79,8 @@ public partial class World : Node2D
         {
             return;
         }
+
+        _soundManager?.StartLoops();
 
         _rng.Randomize();
 
@@ -185,17 +189,20 @@ public partial class World : Node2D
 
     private void OnPlayerFoodGained(int amount, Vector2 worldPosition)
     {
+        _soundManager?.PlayEat();
         ShowFoodPopup(amount, worldPosition);
     }
 
     private void OnPlayerGrew(string text, Vector2 worldPosition)
     {
+        _soundManager?.PlayGrow();
         _ui?.PlayGrowthBarEffect();
         // ShowGrowthPopup(text, worldPosition); // Text on player when grown - change text in player.cs
     }
 
     private void OnPlayerComboTriggered(string text, Vector2 worldPosition)
     {
+        _soundManager?.PlayCombo();
         ShowComboPopup(text, worldPosition);
     }
 

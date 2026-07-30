@@ -3,7 +3,33 @@
 [ext_resource type="PackedScene" uid="uid://tob4ox45b85k" path="res://player/player.tscn" id="1_f3sb7"]
 [ext_resource type="Script" uid="uid://b287c2gouauog" path="res://World.cs" id="1_world"]
 [ext_resource type="PackedScene" uid="uid://i3svo3od2gvg" path="res://fish/fish.tscn" id="2_fj7yv"]
+[ext_resource type="Script" uid="uid://0a1yf6f7tiob" path="res://sound/SoundManager.cs" id="2_sound"]
 [ext_resource type="PackedScene" uid="uid://cjn2mmcw4fnrr" path="res://ui.tscn" id="4_aqk2v"]
+[ext_resource type="AudioStream" uid="uid://diukpbo7p6b84" path="res://sound/Fiskspelet_musik_2.wav" id="5_qktwf"]
+[ext_resource type="AudioStream" uid="uid://cxbrhout7c5bw" path="res://sound/Ambient_bubble.wav" id="snd_ambient_1"]
+[ext_resource type="AudioStream" uid="uid://dkro13btiolrn" path="res://sound/Chomp_1.wav" id="snd_chomp_1"]
+[ext_resource type="AudioStream" uid="uid://2mdlmmpos857" path="res://sound/Chomp_2.wav" id="snd_chomp_2"]
+[ext_resource type="AudioStream" uid="uid://yyq07ujbvjrf" path="res://sound/Chomp_3.wav" id="snd_chomp_3"]
+[ext_resource type="AudioStream" uid="uid://d4x86673gnej" path="res://sound/Chomp_4.wav" id="snd_chomp_4"]
+[ext_resource type="AudioStream" uid="uid://dvh7l40l54ool" path="res://sound/Chomp_5.wav" id="snd_chomp_5"]
+[ext_resource type="AudioStream" uid="uid://bp0x40qfqk4ry" path="res://sound/Chomp_6.wav" id="snd_chomp_6"]
+[ext_resource type="AudioStream" uid="uid://b0ktc7creeeiq" path="res://sound/Chomp_7.wav" id="snd_chomp_7"]
+[ext_resource type="AudioStream" uid="uid://b068s40ut45iq" path="res://sound/Chomp_8.wav" id="snd_chomp_8"]
+[ext_resource type="AudioStream" uid="uid://5j5tav5xf7cm" path="res://sound/Chomp_9.wav" id="snd_chomp_9"]
+[ext_resource type="AudioStream" uid="uid://3ouftfq20fs7" path="res://sound/Death_1.wav" id="snd_death_1"]
+[ext_resource type="AudioStream" uid="uid://qehtef6kkdhm" path="res://sound/Death_2.wav" id="snd_death_2"]
+[ext_resource type="AudioStream" uid="uid://86goa6g855wm" path="res://sound/Death_3.wav" id="snd_death_3"]
+[ext_resource type="AudioStream" uid="uid://bw6ew5fhw5uis" path="res://sound/Death_4.wav" id="snd_death_4"]
+[ext_resource type="AudioStream" uid="uid://dmtjmg5ekcexr" path="res://sound/Flee_blub_1.wav" id="snd_flee_1"]
+[ext_resource type="AudioStream" uid="uid://doh2ewfif1cru" path="res://sound/Flee_blub_2.wav" id="snd_flee_2"]
+[ext_resource type="AudioStream" uid="uid://b4h6wp5i1s7le" path="res://sound/Flee_blub_3.wav" id="snd_flee_3"]
+[ext_resource type="AudioStream" uid="uid://bhouoq28gxen4" path="res://sound/Flee_blub_4.wav" id="snd_flee_4"]
+[ext_resource type="AudioStream" uid="uid://c5ga3r22gr6p8" path="res://sound/Flee_blub_5.wav" id="snd_flee_5"]
+[ext_resource type="AudioStream" uid="uid://ckr74gqm0jibu" path="res://sound/Flee_blub_6.wav" id="snd_flee_6"]
+[ext_resource type="AudioStream" uid="uid://0hu818or2051" path="res://sound/Levelup_1.wav" id="snd_levelup_1"]
+[ext_resource type="AudioStream" uid="uid://6auwr44vst6i" path="res://sound/Levelup_2.wav" id="snd_levelup_2"]
+[ext_resource type="AudioStream" uid="uid://baitrhlb2oehj" path="res://sound/Levelup_3.wav" id="snd_levelup_3"]
+[ext_resource type="AudioStream" uid="uid://dag16sxfinjlm" path="res://sound/Levelup_4_chinese.wav" id="snd_levelup_4"]
 
 [node name="World" type="Node2D" unique_id=1021918435]
 script = ExtResource("1_world")
@@ -12,6 +38,15 @@ SpawnAreaMax = Vector2(1200, 1200)
 
 [node name="Player" parent="." unique_id=434732959 instance=ExtResource("1_f3sb7")]
 position = Vector2(589, 344)
+
+[node name="SoundManager" type="Node" parent="." unique_id=1219861470]
+script = ExtResource("2_sound")
+MusicStreams = [ExtResource("5_qktwf")]
+AmbientStreams = [ExtResource("snd_ambient_1")]
+EatSfxOptions = [ExtResource("snd_chomp_1"), ExtResource("snd_chomp_2"), ExtResource("snd_chomp_3"), ExtResource("snd_chomp_4"), ExtResource("snd_chomp_5"), ExtResource("snd_chomp_6"), ExtResource("snd_chomp_7"), ExtResource("snd_chomp_8"), ExtResource("snd_chomp_9")]
+GrowSfxOptions = [ExtResource("snd_levelup_1"), ExtResource("snd_levelup_2"), ExtResource("snd_levelup_3"), ExtResource("snd_levelup_4")]
+DeathSfxOptions = [ExtResource("snd_death_1"), ExtResource("snd_death_2"), ExtResource("snd_death_3"), ExtResource("snd_death_4")]
+FleeSfxOptions = [ExtResource("snd_flee_1"), ExtResource("snd_flee_2"), ExtResource("snd_flee_3"), ExtResource("snd_flee_4"), ExtResource("snd_flee_5"), ExtResource("snd_flee_6")]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1315028800]
 

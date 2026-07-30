@@ -10,7 +10,7 @@ public partial class TinyBubble : AnimatedSprite2D
 	{
 		if (SpriteFrames != null && SpriteFrames.HasAnimation(Animation))
 		{
-			SpriteFrames.SetAnimationLoopMode(Animation, SpriteFrames.LoopMode.None);
+			SpriteFrames.SetAnimationLoop(Animation, false);
 		}
 
 		AnimationFinished += OnAnimationFinished;

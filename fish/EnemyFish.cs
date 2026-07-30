@@ -56,6 +56,7 @@ public partial class EnemyFish : Area2D
     private Player _player;
     private AnimatedSprite2D _animatedSprite;
     private Area2D _avoidanceSensor;
+    private SoundManager _soundManager;
     private Vector2 _direction = Vector2.Right;
     private float _wanderTimer = 0.0f;
     private float _idlePauseTimer = 0.0f;
@@ -70,6 +71,7 @@ public partial class EnemyFish : Area2D
         _player = _world?.GetNodeOrNull<Player>("Player");
         _animatedSprite = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
         _avoidanceSensor = GetNodeOrNull<Area2D>("AvoidanceSensor");
+        _soundManager = _world?.GetNodeOrNull<SoundManager>("SoundManager");
         _direction = GetRandomDirection();
         ResetWanderTimer();
     }
@@ -234,6 +236,7 @@ public partial class EnemyFish : Area2D
 
         _avoidSpeedBoostTimer = duration;
         _avoidSpeedBoostCooldownTimer = Mathf.Max(0.0f, AvoidSpeedBoostCooldown);
+        _soundManager?.PlayFlee();
     }
 
     private float GetCurrentMovementSpeed()
