@@ -12,8 +12,14 @@ config_version=5
 
 config/name="godot-fishy"
 run/main_scene="uid://cllss6atf5puq"
-config/features=PackedStringArray("4.6", "C#", "Forward Plus")
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/mode=3
 
 [dotnet]
 

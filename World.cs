@@ -39,7 +39,7 @@ public partial class World : Node2D
 
     private RandomNumberGenerator _rng = new RandomNumberGenerator();
     private Vector2 _spawnAreaMin = new Vector2(0, 0);
-    private Vector2 _spawnAreaMax = new Vector2(2000, 1000);
+    private Vector2 _spawnAreaMax = new Vector2(2000, 2000);
     private Player _player;
     private GameUI _ui;
     private SoundManager _soundManager;
