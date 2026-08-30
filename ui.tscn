@@ -95,6 +95,21 @@ offset_bottom = 48.0
 grow_horizontal = 0
 text = "Pause"
 
+[node name="MutedLabel" type="Label" parent="." unique_id=1890267434]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -140.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 39.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+text = "MUTED"
+horizontal_alignment = 2
+
 [node name="BottomRight" type="MarginContainer" parent="." unique_id=19585933]
 layout_mode = 1
 anchors_preset = 3

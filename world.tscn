@@ -114,6 +114,7 @@ texture = ExtResource("sky_2")
 position = Vector2(287, -174)
 
 [node name="Sky" type="Parallax2D" parent="Sky3Parallax" unique_id=1056606235]
+scroll_scale = Vector2(0.75, 1)
 repeat_size = Vector2(576, 0)
 repeat_times = 8
 limit_begin = Vector2(-10000000, 0)
@@ -134,7 +135,7 @@ limit_end = Vector2(10000000, 0)
 texture = ExtResource("sky_2")
 
 [node name="LowClouds" type="Parallax2D" parent="Sky3Parallax" unique_id=1124035670]
-scroll_scale = Vector2(0.75, 1)
+scroll_scale = Vector2(0.9, 1)
 scroll_offset = Vector2(-3, 12)
 repeat_size = Vector2(576, 0)
 repeat_times = 8

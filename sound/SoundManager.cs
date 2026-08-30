@@ -3,6 +3,14 @@ using System.Threading.Tasks;
 
 public partial class SoundManager : Node
 {
+    [Signal]
+    public delegate void MuteChangedEventHandler(bool muted);
+
+    public bool IsMuted { get; private set; } = false;
+
+    [Export]
+    public bool StartMuted = true;
+
     [Export]
     public AudioStream[] MusicStreams = [];
 
@@ -95,6 +103,7 @@ public partial class SoundManager : Node
         _ambientPlayer = EnsurePlayer("AmbientPlayer", AmbientBus, AmbientVolumeDb);
         _ambientPlayer.Finished += OnAmbientFinished;
         EnsureSfxPlayers();
+        SetMuted(StartMuted);
     }
 
     public void StartLoops()
@@ -151,6 +160,28 @@ public partial class SoundManager : Node
     public void PlayCombo()
     {
         PlayOneShot(PickRandomStream(ComboSfxOptions, ref _lastComboSfxIndex));
+    }
+
+    public void ToggleMute()
+    {
+        SetMuted(!IsMuted);
+    }
+
+    public void SetMuted(bool muted)
+    {
+        if (IsMuted == muted)
+        {
+            return;
+        }
+
+        IsMuted = muted;
+        int masterBusIndex = AudioServer.GetBusIndex("Master");
+        if (masterBusIndex >= 0)
+        {
+            AudioServer.SetBusMute(masterBusIndex, muted);
+        }
+
+        EmitSignal(SignalName.MuteChanged, muted);
     }
 
     private AudioStreamPlayer EnsurePlayer(string nodeName, string requestedBus, float volumeDb)

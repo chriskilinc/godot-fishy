@@ -9,6 +9,7 @@ public partial class GameUI : Control
     private ProgressBar _comboTimerBar;
     private TextureProgressBar _growthBar;
     private Label _growthLabel;
+    private Label _mutedLabel;
     private Button _pauseButton;
     private Control _floatingTextLayer;
 
@@ -20,6 +21,7 @@ public partial class GameUI : Control
         _comboTimerBar = GetNodeOrNull<ProgressBar>("BottomRight/ComboTimerBar");
         _growthBar = GetNodeOrNull<TextureProgressBar>("GrowthPanel/GrowthBar");
         _growthLabel = GetNodeOrNull<Label>("GrowthPanel/GrowthBar/GrowthLabel");
+        _mutedLabel = GetNodeOrNull<Label>("MutedLabel");
         _pauseButton = GetNodeOrNull<Button>("PauseButton");
         _floatingTextLayer = GetNodeOrNull<Control>("FloatingTextLayer");
 
@@ -31,6 +33,17 @@ public partial class GameUI : Control
 
         ProcessMode = ProcessModeEnum.Always;
         UpdatePauseButtonText();
+        SetMuted(false);
+    }
+
+    public void SetMuted(bool muted)
+    {
+        if (_mutedLabel == null)
+        {
+            return;
+        }
+
+        _mutedLabel.Visible = muted;
     }
 
     public void PlayGrowthBarEffect()

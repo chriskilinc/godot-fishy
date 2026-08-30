@@ -79,7 +79,13 @@ public partial class World : Node2D
             _player.ComboTriggered += OnPlayerComboTriggered;
         }
 
+        if (_soundManager != null)
+        {
+            _soundManager.MuteChanged += OnMuteChanged;
+        }
+
         UpdateHud();
+        _ui?.SetMuted(_soundManager?.IsMuted == true);
 
         if (Engine.IsEditorHint())
         {
@@ -104,6 +110,11 @@ public partial class World : Node2D
             _player.FoodGained -= OnPlayerFoodGained;
             _player.Grew -= OnPlayerGrew;
             _player.ComboTriggered -= OnPlayerComboTriggered;
+        }
+
+        if (_soundManager != null)
+        {
+            _soundManager.MuteChanged -= OnMuteChanged;
         }
     }
 
@@ -210,6 +221,11 @@ public partial class World : Node2D
     {
         _soundManager?.PlayCombo();
         ShowComboPopup(text, worldPosition);
+    }
+
+    private void OnMuteChanged(bool muted)
+    {
+        _ui?.SetMuted(muted);
     }
 
     private void UpdateHud()
