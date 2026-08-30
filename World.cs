@@ -16,6 +16,7 @@ public partial class World : Node2D
         set
         {
             _spawnAreaMin = value;
+            UpdateBackgroundBounds();
             QueueRedraw();
         }
     }
@@ -27,6 +28,7 @@ public partial class World : Node2D
         set
         {
             _spawnAreaMax = value;
+            UpdateBackgroundBounds();
             QueueRedraw();
         }
     }
@@ -51,21 +53,8 @@ public partial class World : Node2D
     {
         QueueRedraw();
 
-        // Spawn background first so it renders behind everything
-        if (!Engine.IsEditorHint())
-        {
-            var playableArea = GetPlayableArea();
-            var horizontalOverflow = Mathf.Max(0f, BackgroundHorizontalOverflow);
-
-            var background = new Background
-            {
-                Name = "Background",
-                AreaMin = new Vector2(playableArea.Position.X - horizontalOverflow, playableArea.Position.Y),
-                AreaMax = new Vector2(playableArea.End.X + horizontalOverflow, playableArea.End.Y),
-            };
-            AddChild(background);
-            MoveChild(background, 0);
-        }
+        EnsureBackgroundNode();
+        UpdateBackgroundBounds();
 
         _player = GetNodeOrNull<Player>("Player");
         _ui = GetNodeOrNull<GameUI>("CanvasLayer/UI");
@@ -144,6 +133,38 @@ public partial class World : Node2D
         );
 
         return new Rect2(areaPosition, areaSize);
+    }
+
+    private void EnsureBackgroundNode()
+    {
+        if (GetNodeOrNull<Background>("Background") != null)
+        {
+            return;
+        }
+
+        var background = new Background
+        {
+            Name = "Background",
+        };
+
+        AddChild(background);
+        MoveChild(background, 0);
+    }
+
+    private void UpdateBackgroundBounds()
+    {
+        var background = GetNodeOrNull<Background>("Background");
+        if (background == null)
+        {
+            return;
+        }
+
+        var playableArea = GetPlayableArea();
+        var horizontalOverflow = Mathf.Max(0f, BackgroundHorizontalOverflow);
+
+        background.AreaMin = new Vector2(playableArea.Position.X - horizontalOverflow, playableArea.Position.Y);
+        background.AreaMax = new Vector2(playableArea.End.X + horizontalOverflow, playableArea.End.Y);
+        background.QueueRedraw();
     }
 
     private void SpawnFish()

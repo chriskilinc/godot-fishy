@@ -1,5 +1,6 @@
 using Godot;
 
+[Tool]
 public partial class Background : Node2D
 {
     [Export] public Vector2 AreaMin = Vector2.Zero;
@@ -7,7 +8,7 @@ public partial class Background : Node2D
     [Export] public int LightRayCount = 14;
     // Fraction of area width where the sun sits above the surface (0 = left edge, 1 = right edge)
     [Export] public float SunXFraction = 0.62f;
-    [Export] public int AmbientBubbleCount = 18;
+    [Export] public int AmbientBubbleCount = 24;
 
     private float _time = 0f;
     private RandomNumberGenerator _rng = new RandomNumberGenerator();
@@ -30,19 +31,51 @@ public partial class Background : Node2D
         public float Phase;
     }
 
-    private LightRay[] _rays;
-    private AmbientBubble[] _bubbles;
+    private LightRay[] _rays = System.Array.Empty<LightRay>();
+    private AmbientBubble[] _bubbles = System.Array.Empty<AmbientBubble>();
+    private Vector2 _lastAreaMin;
+    private Vector2 _lastAreaMax;
+    private int _lastLightRayCount;
+    private int _lastAmbientBubbleCount;
+    private bool _buffersInitialized;
 
     public override void _Ready()
     {
         ZIndex = -10;
+        SetProcess(true);
         _rng.Randomize();
+        EnsureSimulationBuffers();
+        QueueRedraw();
+    }
+
+    private void EnsureSimulationBuffers()
+    {
+        bool areaChanged = !_buffersInitialized || _lastAreaMin != AreaMin || _lastAreaMax != AreaMax;
+        bool countChanged = !_buffersInitialized || _lastLightRayCount != LightRayCount || _lastAmbientBubbleCount != AmbientBubbleCount;
+
+        if (!areaChanged && !countChanged)
+        {
+            return;
+        }
+
         InitRays();
         InitBubbles();
+
+        _lastAreaMin = AreaMin;
+        _lastAreaMax = AreaMax;
+        _lastLightRayCount = LightRayCount;
+        _lastAmbientBubbleCount = AmbientBubbleCount;
+        _buffersInitialized = true;
     }
 
     private void InitRays()
     {
+        if (LightRayCount <= 0)
+        {
+            _rays = System.Array.Empty<LightRay>();
+            return;
+        }
+
         _rays = new LightRay[LightRayCount];
         float span = AreaMax.X - AreaMin.X;
         for (int i = 0; i < LightRayCount; i++)
@@ -60,6 +93,12 @@ public partial class Background : Node2D
 
     private void InitBubbles()
     {
+        if (AmbientBubbleCount <= 0)
+        {
+            _bubbles = System.Array.Empty<AmbientBubble>();
+            return;
+        }
+
         _bubbles = new AmbientBubble[AmbientBubbleCount];
         float width = AreaMax.X - AreaMin.X;
         float height = AreaMax.Y - AreaMin.Y;
@@ -78,6 +117,9 @@ public partial class Background : Node2D
 
     public override void _Process(double delta)
     {
+        QueueRedraw();
+        EnsureSimulationBuffers();
+
         float dt = (float)delta;
         _time += dt;
 
@@ -93,11 +135,12 @@ public partial class Background : Node2D
             }
         }
 
-        QueueRedraw();
     }
 
     public override void _Draw()
     {
+        EnsureSimulationBuffers();
+
         var topLeft = AreaMin;
         var size = AreaMax - AreaMin;
         if (size == Vector2.Zero) return;
