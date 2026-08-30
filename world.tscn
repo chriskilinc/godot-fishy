@@ -7,6 +7,10 @@
 [ext_resource type="Script" uid="uid://cvripydlxxw27" path="res://input/GlobalInput.cs" id="3_global_input"]
 [ext_resource type="PackedScene" uid="uid://cjn2mmcw4fnrr" path="res://ui.tscn" id="4_aqk2v"]
 [ext_resource type="AudioStream" uid="uid://diukpbo7p6b84" path="res://sound/Fiskspelet_musik_2.wav" id="5_qktwf"]
+[ext_resource type="Texture2D" uid="uid://f28xx22o2oax" path="res://assets/Clouds 1/1.png" id="sky_1"]
+[ext_resource type="Texture2D" uid="uid://b1lyw48k4x2so" path="res://assets/Clouds 1/2.png" id="sky_2"]
+[ext_resource type="Texture2D" uid="uid://b0wcd8p5v703x" path="res://assets/Clouds 1/3.png" id="sky_3"]
+[ext_resource type="Texture2D" uid="uid://cyk5ux2ivsd7h" path="res://assets/Clouds 1/4.png" id="sky_4"]
 [ext_resource type="AudioStream" uid="uid://cxbrhout7c5bw" path="res://sound/Ambient_bubble.wav" id="snd_ambient_1"]
 [ext_resource type="AudioStream" uid="uid://dkro13btiolrn" path="res://sound/Chomp_1.wav" id="snd_chomp_1"]
 [ext_resource type="AudioStream" uid="uid://2mdlmmpos857" path="res://sound/Chomp_2.wav" id="snd_chomp_2"]
@@ -35,6 +39,110 @@
 [node name="World" type="Node2D" unique_id=1021918435]
 script = ExtResource("1_world")
 FishScene = ExtResource("2_fj7yv")
+
+[node name="Sky" type="Node2D" parent="." unique_id=1529751939]
+visible = false
+z_index = 20
+position = Vector2(0, -324)
+
+[node name="Layer1" type="Parallax2D" parent="Sky" unique_id=1310059114]
+scroll_scale = Vector2(0.05, 0)
+scroll_offset = Vector2(63, 300)
+repeat_size = Vector2(576, 0)
+
+[node name="Sprite" type="Sprite2D" parent="Sky/Layer1" unique_id=349730268]
+texture = ExtResource("sky_1")
+centered = false
+
+[node name="Layer2" type="Parallax2D" parent="Sky" unique_id=1800099168]
+scroll_scale = Vector2(0.12, 0)
+repeat_size = Vector2(576, 0)
+
+[node name="Sprite" type="Sprite2D" parent="Sky/Layer2" unique_id=523113735]
+texture = ExtResource("sky_2")
+centered = false
+
+[node name="Layer3" type="Parallax2D" parent="Sky" unique_id=2053592931]
+scroll_scale = Vector2(0.2, 0)
+repeat_size = Vector2(576, 0)
+
+[node name="Sprite" type="Sprite2D" parent="Sky/Layer3" unique_id=2069965295]
+texture = ExtResource("sky_3")
+centered = false
+
+[node name="Layer4" type="Parallax2D" parent="Sky" unique_id=600784168]
+scroll_scale = Vector2(0.35, 0)
+repeat_size = Vector2(576, 0)
+
+[node name="Sprite" type="Sprite2D" parent="Sky/Layer4" unique_id=1669373645]
+texture = ExtResource("sky_4")
+centered = false
+
+[node name="Sky2" type="Node2D" parent="." unique_id=943173011]
+visible = false
+
+[node name="Parallax2D" type="Parallax2D" parent="Sky2" unique_id=586199000]
+
+[node name="1" type="Sprite2D" parent="Sky2/Parallax2D" unique_id=300200116]
+position = Vector2(834.49994, -596)
+scale = Vector2(5.5468755, 3.679012)
+texture = ExtResource("sky_1")
+
+[node name="Parallax2D2" type="Parallax2D" parent="Sky2" unique_id=1228965731]
+
+[node name="2" type="Sprite2D" parent="Sky2/Parallax2D2" unique_id=1907058112]
+position = Vector2(331.43225, -186.99997)
+scale = Vector2(1.1508064, 1.1543211)
+texture = ExtResource("sky_2")
+
+[node name="2" type="Sprite2D" parent="Sky2/Parallax2D2/2" unique_id=856585235]
+position = Vector2(-619.07227, -25.123013)
+scale = Vector2(1.1508064, 1.1543211)
+texture = ExtResource("sky_2")
+
+[node name="3" type="Sprite2D" parent="Sky2/Parallax2D2" unique_id=2003717974]
+position = Vector2(1044, -215)
+scale = Vector2(1.3243555, 1.3324572)
+texture = ExtResource("sky_2")
+
+[node name="4" type="Sprite2D" parent="Sky2/Parallax2D2" unique_id=1660826985]
+position = Vector2(1929, -287)
+scale = Vector2(1.7539175, 1.7754421)
+texture = ExtResource("sky_2")
+
+[node name="Sky3Parallax" type="Node2D" parent="." unique_id=2033048171]
+position = Vector2(287, -174)
+
+[node name="Sky" type="Parallax2D" parent="Sky3Parallax" unique_id=1056606235]
+repeat_size = Vector2(576, 0)
+repeat_times = 8
+limit_begin = Vector2(-10000000, 0)
+limit_end = Vector2(10000000, 0)
+
+[node name="1" type="Sprite2D" parent="Sky3Parallax/Sky" unique_id=383698198]
+texture = ExtResource("sky_1")
+
+[node name="HighClouds" type="Parallax2D" parent="Sky3Parallax" unique_id=1256607503]
+scroll_scale = Vector2(0.8, 1)
+scroll_offset = Vector2(0, -1)
+repeat_size = Vector2(576, 0)
+repeat_times = 8
+limit_begin = Vector2(-10000000, 0)
+limit_end = Vector2(10000000, 0)
+
+[node name="2" type="Sprite2D" parent="Sky3Parallax/HighClouds" unique_id=34816718]
+texture = ExtResource("sky_2")
+
+[node name="LowClouds" type="Parallax2D" parent="Sky3Parallax" unique_id=1124035670]
+scroll_scale = Vector2(0.75, 1)
+scroll_offset = Vector2(-3, 12)
+repeat_size = Vector2(576, 0)
+repeat_times = 8
+limit_begin = Vector2(-10000000, 0)
+limit_end = Vector2(10000000, 0)
+
+[node name="4" type="Sprite2D" parent="Sky3Parallax/LowClouds" unique_id=811454366]
+texture = ExtResource("sky_4")
 
 [node name="GlobalInput" type="Node" parent="." unique_id=1931642414]
 script = ExtResource("3_global_input")

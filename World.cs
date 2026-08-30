@@ -37,6 +37,9 @@ public partial class World : Node2D
     [Export(PropertyHint.Range, "1,12,1")]
     public int SpawnBorderWidth = 2;
 
+    [Export(PropertyHint.Range, "0,5000,1")]
+    public float BackgroundHorizontalOverflow = 400f;
+
     private RandomNumberGenerator _rng = new RandomNumberGenerator();
     private Vector2 _spawnAreaMin = new Vector2(0, 0);
     private Vector2 _spawnAreaMax = new Vector2(2000, 2000);
@@ -51,11 +54,14 @@ public partial class World : Node2D
         // Spawn background first so it renders behind everything
         if (!Engine.IsEditorHint())
         {
+            var playableArea = GetPlayableArea();
+            var horizontalOverflow = Mathf.Max(0f, BackgroundHorizontalOverflow);
+
             var background = new Background
             {
                 Name = "Background",
-                AreaMin = SpawnAreaMin,
-                AreaMax = SpawnAreaMax,
+                AreaMin = new Vector2(playableArea.Position.X - horizontalOverflow, playableArea.Position.Y),
+                AreaMax = new Vector2(playableArea.End.X + horizontalOverflow, playableArea.End.Y),
             };
             AddChild(background);
             MoveChild(background, 0);
