@@ -81,6 +81,8 @@ public partial class World : Node2D
             return;
         }
 
+        Input.MouseMode = Input.MouseModeEnum.Hidden;
+
         _soundManager?.StartLoops();
 
         _rng.Randomize();
@@ -93,6 +95,11 @@ public partial class World : Node2D
 
     public override void _ExitTree()
     {
+        if (!Engine.IsEditorHint())
+        {
+            Input.MouseMode = Input.MouseModeEnum.Visible;
+        }
+
         if (_player != null)
         {
             _player.StatsChanged -= OnPlayerStatsChanged;
