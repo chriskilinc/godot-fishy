@@ -81,6 +81,10 @@ public partial class EnemyFish : Area2D
     private float _despawnProgress = 0.0f;
     private bool _playerInAvoidanceRange = false;
     private bool _wasDebugDrawEnabled = false;
+    private Vector2 _debugVelocity = Vector2.Zero;
+    private Vector2 _debugSteeringTarget = Vector2.Right;
+    private Vector2 _debugAvoidanceSteering = Vector2.Zero;
+    private string _debugStateLabel = "wander";
 
     public override void _Ready()
     {
@@ -115,21 +119,32 @@ public partial class EnemyFish : Area2D
         }
 
         var radius = Mathf.Max(0.0f, DespawnDistanceFromPlayer);
-        if (radius <= 0.0f)
+        if (radius > 0.0f)
         {
-            return;
+            DrawArc(
+                Vector2.Zero,
+                radius,
+                0.0f,
+                Mathf.Tau,
+                96,
+                GetDespawnDebugRingColor(),
+                Mathf.Max(1.0f, DespawnDebugLineWidth),
+                true
+            );
         }
 
-        DrawArc(
-            Vector2.Zero,
-            radius,
-            0.0f,
-            Mathf.Tau,
-            96,
-            GetDespawnDebugRingColor(),
-            Mathf.Max(1.0f, DespawnDebugLineWidth),
-            true
-        );
+        DrawDebugVector(_debugVelocity * 0.35f, new Color(0.20f, 0.95f, 1.0f, 0.95f), "vel");
+        DrawDebugVector(_debugSteeringTarget * 46.0f, new Color(0.98f, 0.94f, 0.20f, 0.95f), "steer");
+        DrawDebugVector(_debugAvoidanceSteering * 38.0f, new Color(1.0f, 0.34f, 0.34f, 0.95f), "avoid");
+
+        var font = ThemeDB.FallbackFont;
+        if (font != null)
+        {
+            var stateColor = _debugStateLabel == "despawn_timer"
+                ? new Color(1.0f, 0.60f, 0.88f, 0.95f)
+                : new Color(0.95f, 0.98f, 1.0f, 0.95f);
+            DrawString(font, new Vector2(-42.0f, -28.0f), $"state: {_debugStateLabel}", HorizontalAlignment.Left, -1.0f, 13, stateColor);
+        }
     }
 
     public override void _PhysicsProcess(double delta)
@@ -141,16 +156,28 @@ public partial class EnemyFish : Area2D
             return;
         }
 
+        var isDespawning = _farFromPlayerTimer > 0.0f;
+
         _avoidSpeedBoostTimer = Mathf.Max(0.0f, _avoidSpeedBoostTimer - dt);
         _avoidSpeedBoostCooldownTimer = Mathf.Max(0.0f, _avoidSpeedBoostCooldownTimer - dt);
 
         if (UpdateIdlePause(dt))
         {
+            _debugVelocity = Vector2.Zero;
+            _debugSteeringTarget = _direction;
+            _debugAvoidanceSteering = Vector2.Zero;
+            _debugStateLabel = isDespawning ? "despawn_timer" : "idle";
             UpdateVisualFacing();
+
+            if (_world?.IsDebugEnabled() == true)
+            {
+                QueueRedraw();
+            }
+
             return;
         }
 
-        var targetDirection = GetSteeringDirection(dt);
+        var targetDirection = GetSteeringDirection(dt, out var avoidanceSteering);
         var lerpWeight = 1.0f - Mathf.Exp(-Mathf.Max(0.01f, DirectionSmoothing) * dt);
         _direction = _direction.Lerp(targetDirection, lerpWeight).Normalized();
 
@@ -160,13 +187,56 @@ public partial class EnemyFish : Area2D
         }
 
         var movementSpeed = GetCurrentMovementSpeed();
-        GlobalPosition += _direction * movementSpeed * dt;
+        var velocity = _direction * movementSpeed;
+        GlobalPosition += velocity * dt;
         KeepInsidePlayableArea();
         UpdateVisualFacing();
+
+        _debugVelocity = velocity;
+        _debugSteeringTarget = targetDirection;
+        _debugAvoidanceSteering = avoidanceSteering;
+        if (isDespawning)
+        {
+            _debugStateLabel = "despawn_timer";
+        }
+        else if (avoidanceSteering.LengthSquared() > 0.0001f)
+        {
+            _debugStateLabel = "flee";
+        }
+        else
+        {
+            _debugStateLabel = "wander";
+        }
 
         if (_world?.IsDebugEnabled() == true)
         {
             QueueRedraw();
+        }
+    }
+
+    private void DrawDebugVector(Vector2 vector, Color color, string label)
+    {
+        if (vector.LengthSquared() <= 0.0001f)
+        {
+            return;
+        }
+
+        var start = Vector2.Zero;
+        var end = vector;
+        DrawLine(start, end, color, 2.0f, true);
+
+        var direction = vector.Normalized();
+        var perpendicular = new Vector2(-direction.Y, direction.X);
+        var arrowHeadLength = Mathf.Clamp(vector.Length() * 0.2f, 5.0f, 12.0f);
+        var arrowHeadSpread = arrowHeadLength * 0.55f;
+
+        DrawLine(end, end - direction * arrowHeadLength + perpendicular * arrowHeadSpread, color, 2.0f, true);
+        DrawLine(end, end - direction * arrowHeadLength - perpendicular * arrowHeadSpread, color, 2.0f, true);
+
+        var font = ThemeDB.FallbackFont;
+        if (font != null)
+        {
+            DrawString(font, end + new Vector2(6.0f, -4.0f), label, HorizontalAlignment.Left, -1.0f, 12, color);
         }
     }
 
@@ -213,13 +283,19 @@ public partial class EnemyFish : Area2D
             if (Size > player.Size)
             {
                 // Enemy fish is bigger than player, player loses
-                GD.Print("Player has been eaten!");
+                if (_world?.IsDebugEnabled() == true)
+                {
+                    GD.Print("Player has been eaten!");
+                }
                 // You can add logic to reset the game or reduce player's size here
             }
             else
             {
                 // Player is bigger than enemy fish, player eats the enemy fish
-                GD.Print("Enemy fish has been eaten!");
+                if (_world?.IsDebugEnabled() == true)
+                {
+                    GD.Print("Enemy fish has been eaten!");
+                }
                 player.EatFood(FoodValue, GlobalPosition);
                 QueueFree(); // Remove the enemy fish from the scene
                 // You can add logic to increase player's size here
@@ -227,13 +303,14 @@ public partial class EnemyFish : Area2D
         }
     }
 
-    private Vector2 GetSteeringDirection(float dt)
+    private Vector2 GetSteeringDirection(float dt, out Vector2 avoidanceSteering)
     {
         UpdateWanderDirection(dt);
 
         var steering = _direction;
         steering += GetBoundsSteering();
-        steering += GetAvoidanceSteering();
+        avoidanceSteering = GetAvoidanceSteering();
+        steering += avoidanceSteering;
 
         if (steering.LengthSquared() <= 0.0001f)
         {

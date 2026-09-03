@@ -142,6 +142,11 @@ public partial class World : Node2D
 
     public override void _Draw()
     {
+        if (!DebugEnabled)
+        {
+            return;
+        }
+
         var playableArea = GetPlayableArea();
         var areaPosition = playableArea.Position;
         var areaSize = playableArea.Size;
@@ -250,6 +255,11 @@ public partial class World : Node2D
 
     private void LogAliveFishCount(string context)
     {
+        if (!DebugEnabled)
+        {
+            return;
+        }
+
         GD.Print($"World: Alive fish count = {CountAliveFish()} ({context})");
     }
 

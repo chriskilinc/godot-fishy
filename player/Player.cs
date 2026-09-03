@@ -247,12 +247,18 @@ public partial class Player : CharacterBody2D
         {
             ApplySizeScale();
             EmitSignal(SignalName.Grew, "<GROWN>", GlobalPosition + new Vector2(0.0f, -32.0f));
-            GD.Print($"Player grew! Size: {Size} (Food eaten: {FoodEaten})");
+            if (_world?.IsDebugEnabled() == true)
+            {
+                GD.Print($"Player grew! Size: {Size} (Food eaten: {FoodEaten})");
+            }
         }
 
         var needed = GetFoodRequiredForNextSize();
         var remaining = needed - _foodTowardsNextSize;
-        GD.Print($"Ate {gainedAmount} food. Progress: {_foodTowardsNextSize}/{needed} — {remaining} more needed to grow.");
+        if (_world?.IsDebugEnabled() == true)
+        {
+            GD.Print($"Ate {gainedAmount} food. Progress: {_foodTowardsNextSize}/{needed} — {remaining} more needed to grow.");
+        }
         EmitSignal(SignalName.StatsChanged);
         return gainedAmount;
     }
