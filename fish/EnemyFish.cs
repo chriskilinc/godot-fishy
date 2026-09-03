@@ -51,6 +51,21 @@ public partial class EnemyFish : Area2D
     [Export]
     public float IdlePauseMaxSeconds { get; set; } = 1.1f;
 
+    [Export]
+    public float DespawnDistanceFromPlayer { get; set; } = 900.0f;
+
+    [Export]
+    public float DespawnAfterFarSeconds { get; set; } = 10.0f;
+
+    [Export]
+    public Color DespawnDebugColor { get; set; } = new Color(0.75f, 0.45f, 1.0f, 0.8f);
+
+    [Export]
+    public Color DespawnDebugCriticalColor { get; set; } = new Color(0.35f, 0.10f, 0.55f, 0.9f);
+
+    [Export(PropertyHint.Range, "1,8,1")]
+    public int DespawnDebugLineWidth { get; set; } = 2;
+
     private readonly RandomNumberGenerator _rng = new RandomNumberGenerator();
     private World _world;
     private Player _player;
@@ -62,7 +77,10 @@ public partial class EnemyFish : Area2D
     private float _idlePauseTimer = 0.0f;
     private float _avoidSpeedBoostTimer = 0.0f;
     private float _avoidSpeedBoostCooldownTimer = 0.0f;
+    private float _farFromPlayerTimer = 0.0f;
+    private float _despawnProgress = 0.0f;
     private bool _playerInAvoidanceRange = false;
+    private bool _wasDebugDrawEnabled = false;
 
     public override void _Ready()
     {
@@ -72,13 +90,56 @@ public partial class EnemyFish : Area2D
         _animatedSprite = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
         _avoidanceSensor = GetNodeOrNull<Area2D>("AvoidanceSensor");
         _soundManager = _world?.GetNodeOrNull<SoundManager>("SoundManager");
+        _wasDebugDrawEnabled = _world?.IsDebugEnabled() == true;
         _direction = GetRandomDirection();
         ResetWanderTimer();
+    }
+
+    public override void _Process(double delta)
+    {
+        var isDebugEnabled = _world?.IsDebugEnabled() == true;
+        if (isDebugEnabled == _wasDebugDrawEnabled)
+        {
+            return;
+        }
+
+        _wasDebugDrawEnabled = isDebugEnabled;
+        QueueRedraw();
+    }
+
+    public override void _Draw()
+    {
+        if (_world?.IsDebugEnabled() != true)
+        {
+            return;
+        }
+
+        var radius = Mathf.Max(0.0f, DespawnDistanceFromPlayer);
+        if (radius <= 0.0f)
+        {
+            return;
+        }
+
+        DrawArc(
+            Vector2.Zero,
+            radius,
+            0.0f,
+            Mathf.Tau,
+            96,
+            GetDespawnDebugRingColor(),
+            Mathf.Max(1.0f, DespawnDebugLineWidth),
+            true
+        );
     }
 
     public override void _PhysicsProcess(double delta)
     {
         var dt = (float)delta;
+
+        if (UpdateFarDespawning(dt))
+        {
+            return;
+        }
 
         _avoidSpeedBoostTimer = Mathf.Max(0.0f, _avoidSpeedBoostTimer - dt);
         _avoidSpeedBoostCooldownTimer = Mathf.Max(0.0f, _avoidSpeedBoostCooldownTimer - dt);
@@ -102,6 +163,46 @@ public partial class EnemyFish : Area2D
         GlobalPosition += _direction * movementSpeed * dt;
         KeepInsidePlayableArea();
         UpdateVisualFacing();
+
+        if (_world?.IsDebugEnabled() == true)
+        {
+            QueueRedraw();
+        }
+    }
+
+    private bool UpdateFarDespawning(float dt)
+    {
+        if (_player == null || DespawnDistanceFromPlayer <= 0.0f)
+        {
+            _farFromPlayerTimer = 0.0f;
+            _despawnProgress = 0.0f;
+            return false;
+        }
+
+        var maxFarSeconds = Mathf.Max(0.01f, DespawnAfterFarSeconds);
+        var despawnDistance = Mathf.Max(0.0f, DespawnDistanceFromPlayer);
+        var distanceToPlayer = GlobalPosition.DistanceTo(_player.GlobalPosition);
+
+        if (distanceToPlayer > despawnDistance)
+        {
+            _farFromPlayerTimer += dt;
+            _despawnProgress = Mathf.Clamp(_farFromPlayerTimer / maxFarSeconds, 0.0f, 1.0f);
+            if (_farFromPlayerTimer >= maxFarSeconds)
+            {
+                QueueFree();
+                return true;
+            }
+            return false;
+        }
+
+        _farFromPlayerTimer = 0.0f;
+        _despawnProgress = 0.0f;
+        return false;
+    }
+
+    private Color GetDespawnDebugRingColor()
+    {
+        return DespawnDebugColor.Lerp(DespawnDebugCriticalColor, _despawnProgress);
     }
 
     // Add on body entered signal to detect collision with player

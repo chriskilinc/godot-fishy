@@ -42,12 +42,36 @@ public partial class World : Node2D
     [Export(PropertyHint.Range, "0,5000,1")]
     public float BackgroundHorizontalOverflow = 400f;
 
+    [Export(PropertyHint.Range, "0,4000,1")]
+    public float RespawnNearPlayerMinDistance = 260f;
+
+    [Export(PropertyHint.Range, "0,6000,1")]
+    public float RespawnNearPlayerMaxDistance = 620f;
+
+    [Export(PropertyHint.Range, "0,1500,1")]
+    public float RespawnOutOfSightMargin = 64f;
+
+    [Export(PropertyHint.Range, "1,50,1")]
+    public int RespawnSearchAttempts = 16;
+
+    [Export]
+    public bool DebugEnabled
+    {
+        get => _debugEnabled;
+        set
+        {
+            _debugEnabled = value;
+            QueueRedraw();
+        }
+    }
+
     private RandomNumberGenerator _rng = new RandomNumberGenerator();
     private Vector2 _spawnAreaMin = new Vector2(0, 0);
     private Vector2 _spawnAreaMax = new Vector2(2000, 2000);
     private Player _player;
     private GameUI _ui;
     private SoundManager _soundManager;
+    private bool _debugEnabled = false;
 
     public override void _Ready()
     {
@@ -91,6 +115,8 @@ public partial class World : Node2D
         {
             SpawnFish();
         }
+
+        LogAliveFishCount("Initial spawn complete");
     }
 
     public override void _ExitTree()
@@ -142,6 +168,11 @@ public partial class World : Node2D
         return new Rect2(areaPosition, areaSize);
     }
 
+    public bool IsDebugEnabled()
+    {
+        return DebugEnabled;
+    }
+
     private void EnsureBackgroundNode()
     {
         if (GetNodeOrNull<Background>("Background") != null)
@@ -183,15 +214,144 @@ public partial class World : Node2D
         }
 
         var fish = FishScene.Instantiate<Node2D>();
-        fish.Position = new Vector2(
-            _rng.RandfRange(SpawnAreaMin.X, SpawnAreaMax.X),
-            _rng.RandfRange(SpawnAreaMin.Y, SpawnAreaMax.Y)
-        );
+        fish.Position = GetFishSpawnPosition();
 
         AddChild(fish);
 
         // When this fish leaves the tree (eaten or otherwise freed), spawn a replacement
-        fish.TreeExited += SpawnFish;
+        fish.TreeExited += OnFishTreeExited;
+    }
+
+    private void OnFishTreeExited()
+    {
+        if (!IsInsideTree() || Engine.IsEditorHint())
+        {
+            return;
+        }
+
+        LogAliveFishCount("Fish removed");
+        SpawnFish();
+        LogAliveFishCount("Replacement fish spawned");
+    }
+
+    private int CountAliveFish()
+    {
+        var aliveCount = 0;
+        foreach (var child in GetChildren())
+        {
+            if (child is EnemyFish)
+            {
+                aliveCount++;
+            }
+        }
+
+        return aliveCount;
+    }
+
+    private void LogAliveFishCount(string context)
+    {
+        GD.Print($"World: Alive fish count = {CountAliveFish()} ({context})");
+    }
+
+    private Vector2 GetFishSpawnPosition()
+    {
+        if (!Engine.IsEditorHint() && _player != null && TryGetOutOfSightSpawnPosition(out var outOfSightPosition))
+        {
+            return outOfSightPosition;
+        }
+
+        return GetRandomSpawnPositionInPlayableArea();
+    }
+
+    private Vector2 GetRandomSpawnPositionInPlayableArea()
+    {
+        var playableArea = GetPlayableArea();
+        if (playableArea.Size == Vector2.Zero)
+        {
+            return Vector2.Zero;
+        }
+
+        return new Vector2(
+            _rng.RandfRange(playableArea.Position.X, playableArea.End.X),
+            _rng.RandfRange(playableArea.Position.Y, playableArea.End.Y)
+        );
+    }
+
+    private bool TryGetOutOfSightSpawnPosition(out Vector2 spawnPosition)
+    {
+        spawnPosition = Vector2.Zero;
+
+        if (_player == null)
+        {
+            return false;
+        }
+
+        var playableArea = GetPlayableArea();
+        if (playableArea.Size == Vector2.Zero)
+        {
+            return false;
+        }
+
+        var visibleWorldRect = GetVisibleWorldRect().Grow(Mathf.Max(0.0f, RespawnOutOfSightMargin));
+        var minDistance = Mathf.Max(0.0f, RespawnNearPlayerMinDistance);
+        var maxDistance = Mathf.Max(minDistance + 1.0f, RespawnNearPlayerMaxDistance);
+        var attempts = Mathf.Max(1, RespawnSearchAttempts);
+
+        for (var i = 0; i < attempts; i++)
+        {
+            var angle = _rng.RandfRange(0.0f, Mathf.Tau);
+            var distance = _rng.RandfRange(minDistance, maxDistance);
+            var candidate = _player.GlobalPosition + Vector2.Right.Rotated(angle) * distance;
+
+            if (!playableArea.HasPoint(candidate))
+            {
+                continue;
+            }
+
+            if (visibleWorldRect.HasPoint(candidate))
+            {
+                continue;
+            }
+
+            spawnPosition = candidate;
+            return true;
+        }
+
+        for (var i = 0; i < attempts; i++)
+        {
+            var candidate = GetRandomSpawnPositionInPlayableArea();
+            if (!visibleWorldRect.HasPoint(candidate))
+            {
+                spawnPosition = candidate;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Rect2 GetVisibleWorldRect()
+    {
+        var viewport = GetViewport();
+        if (viewport == null)
+        {
+            return new Rect2(Vector2.Zero, Vector2.Zero);
+        }
+
+        var visibleScreenRect = viewport.GetVisibleRect();
+        var inverseCanvasTransform = viewport.GetCanvasTransform().AffineInverse();
+
+        var topLeft = inverseCanvasTransform * visibleScreenRect.Position;
+        var topRight = inverseCanvasTransform * new Vector2(visibleScreenRect.End.X, visibleScreenRect.Position.Y);
+        var bottomLeft = inverseCanvasTransform * new Vector2(visibleScreenRect.Position.X, visibleScreenRect.End.Y);
+        var bottomRight = inverseCanvasTransform * visibleScreenRect.End;
+
+        var minX = Mathf.Min(Mathf.Min(topLeft.X, topRight.X), Mathf.Min(bottomLeft.X, bottomRight.X));
+        var minY = Mathf.Min(Mathf.Min(topLeft.Y, topRight.Y), Mathf.Min(bottomLeft.Y, bottomRight.Y));
+        var maxX = Mathf.Max(Mathf.Max(topLeft.X, topRight.X), Mathf.Max(bottomLeft.X, bottomRight.X));
+        var maxY = Mathf.Max(Mathf.Max(topLeft.Y, topRight.Y), Mathf.Max(bottomLeft.Y, bottomRight.Y));
+
+        return new Rect2(new Vector2(minX, minY), new Vector2(maxX - minX, maxY - minY));
     }
 
     public void ShowFoodPopup(int amount, Vector2 worldPosition)

@@ -58,7 +58,7 @@ public partial class Player : CharacterBody2D
     public float CameraZoomStep = 0.2f;
 
     [Export]
-    public float MinCameraZoom = 2.5f;
+    public float MinCameraZoom = 1.5f;
 
     [Export]
     public float MaxCameraZoom = 3f;
