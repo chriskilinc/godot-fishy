@@ -54,6 +54,18 @@ public partial class World : Node2D
     [Export(PropertyHint.Range, "1,50,1")]
     public int RespawnSearchAttempts = 16;
 
+    [Export(PropertyHint.Range, "1,20,1")]
+    public int MaxFishLevel = 5;
+
+    [Export(PropertyHint.Range, "0,20000,1")]
+    public float LevelDepthStart = 0.0f;
+
+    [Export(PropertyHint.Range, "100,10000,1")]
+    public float LevelDepthRangeSize = 2000.0f;
+
+    [Export(PropertyHint.Range, "1,10000,1")]
+    public float LevelDepthStep = 1000.0f;
+
     [Export]
     public bool DebugEnabled
     {
@@ -218,13 +230,66 @@ public partial class World : Node2D
             return;
         }
 
-        var fish = FishScene.Instantiate<Node2D>();
-        fish.Position = GetFishSpawnPosition();
+        var fish = FishScene.Instantiate<EnemyFish>();
+        if (fish == null)
+        {
+            GD.PrintErr("World: FishScene must be an EnemyFish scene.");
+            return;
+        }
+
+        var spawnPosition = GetFishSpawnPosition();
+        fish.Position = spawnPosition;
+
+        var fishLevel = GetFishLevelForDepth(spawnPosition.Y);
+        ConfigureFishForLevel(fish, fishLevel);
 
         AddChild(fish);
 
         // When this fish leaves the tree (eaten or otherwise freed), spawn a replacement
         fish.TreeExited += OnFishTreeExited;
+    }
+
+    private int GetFishLevelForDepth(float depthY)
+    {
+        var maxLevel = Mathf.Max(1, MaxFishLevel);
+        var depthStart = LevelDepthStart;
+        var depthRangeSize = Mathf.Max(1.0f, LevelDepthRangeSize);
+        var depthStep = Mathf.Max(1.0f, LevelDepthStep);
+
+        var matchingLevels = new System.Collections.Generic.List<int>(maxLevel);
+        for (var level = 1; level <= maxLevel; level++)
+        {
+            var bandStart = depthStart + (level - 1) * depthStep;
+            var bandEnd = bandStart + depthRangeSize;
+            if (depthY >= bandStart && depthY <= bandEnd)
+            {
+                matchingLevels.Add(level);
+            }
+        }
+
+        if (matchingLevels.Count > 0)
+        {
+            return matchingLevels[_rng.RandiRange(0, matchingLevels.Count - 1)];
+        }
+
+        if (depthY < depthStart)
+        {
+            return 1;
+        }
+
+        return maxLevel;
+    }
+
+    private void ConfigureFishForLevel(EnemyFish fish, int level)
+    {
+        if (fish == null)
+        {
+            return;
+        }
+
+        var clampedLevel = Mathf.Clamp(level, 1, Mathf.Max(1, MaxFishLevel));
+        fish.Size = clampedLevel;
+        fish.FoodValue = clampedLevel;
     }
 
     private void OnFishTreeExited()

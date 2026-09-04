@@ -255,6 +255,16 @@ sprite_frames = SubResource("SpriteFrames_627cc")
 autoplay = "default"
 frame_progress = 0.103795834
 
+[node name="DebugLevelLabel" type="Label" parent="." unique_id=989450112]
+offset_left = -18.0
+offset_top = 16.0
+offset_right = 18.0
+offset_bottom = 36.0
+theme_override_colors/font_color = Color(1, 0.94902, 0.619608, 0.98)
+theme_override_font_sizes/font_size = 14
+text = "lvl 1"
+horizontal_alignment = 1
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=533753813]
 position = Vector2(1.5, 0)
 shape = SubResource("RectangleShape2D_xu20i")

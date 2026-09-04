@@ -52,7 +52,7 @@ public partial class EnemyFish : Area2D
     public float IdlePauseMaxSeconds { get; set; } = 1.1f;
 
     [Export]
-    public float DespawnDistanceFromPlayer { get; set; } = 900.0f;
+    public float DespawnDistanceFromPlayer { get; set; } = 600.0f;
 
     [Export]
     public float DespawnAfterFarSeconds { get; set; } = 10.0f;
@@ -70,6 +70,7 @@ public partial class EnemyFish : Area2D
     private World _world;
     private Player _player;
     private AnimatedSprite2D _animatedSprite;
+    private Label _debugLevelLabel;
     private Area2D _avoidanceSensor;
     private SoundManager _soundManager;
     private Vector2 _direction = Vector2.Right;
@@ -92,11 +93,13 @@ public partial class EnemyFish : Area2D
         _world = GetParentOrNull<World>();
         _player = _world?.GetNodeOrNull<Player>("Player");
         _animatedSprite = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        _debugLevelLabel = GetNodeOrNull<Label>("DebugLevelLabel");
         _avoidanceSensor = GetNodeOrNull<Area2D>("AvoidanceSensor");
         _soundManager = _world?.GetNodeOrNull<SoundManager>("SoundManager");
         _wasDebugDrawEnabled = _world?.IsDebugEnabled() == true;
         _direction = GetRandomDirection();
         ResetWanderTimer();
+        UpdateDebugLevelLabel();
     }
 
     public override void _Process(double delta)
@@ -108,6 +111,7 @@ public partial class EnemyFish : Area2D
         }
 
         _wasDebugDrawEnabled = isDebugEnabled;
+        UpdateDebugLevelLabel();
         QueueRedraw();
     }
 
@@ -144,7 +148,19 @@ public partial class EnemyFish : Area2D
                 ? new Color(1.0f, 0.60f, 0.88f, 0.95f)
                 : new Color(0.95f, 0.98f, 1.0f, 0.95f);
             DrawString(font, new Vector2(-42.0f, -28.0f), $"state: {_debugStateLabel}", HorizontalAlignment.Left, -1.0f, 13, stateColor);
+
         }
+    }
+
+    private void UpdateDebugLevelLabel()
+    {
+        if (_debugLevelLabel == null)
+        {
+            return;
+        }
+
+        _debugLevelLabel.Visible = _world?.IsDebugEnabled() == true;
+        _debugLevelLabel.Text = $"lvl {Mathf.Max(1, Size)}";
     }
 
     public override void _PhysicsProcess(double delta)
