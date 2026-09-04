@@ -67,6 +67,15 @@ public partial class World : Node2D
     public float LevelDepthStep = 1000.0f;
 
     [Export]
+    public Color BossIntroColor = new Color(0.86f, 0.36f, 0.95f);
+
+    [Export]
+    public Color BossDefeatedColor = new Color(0.55f, 1.0f, 0.72f);
+
+    [Export]
+    public Color VictoryColor = new Color(1.0f, 0.86f, 0.35f);
+
+    [Export]
     public bool DebugEnabled
     {
         get => _debugEnabled;
@@ -83,6 +92,7 @@ public partial class World : Node2D
     private Player _player;
     private GameUI _ui;
     private SoundManager _soundManager;
+    private BossDirector _bossDirector;
     private bool _debugEnabled = false;
 
     public override void _Ready()
@@ -95,6 +105,7 @@ public partial class World : Node2D
         _player = GetNodeOrNull<Player>("Player");
         _ui = GetNodeOrNull<GameUI>("CanvasLayer/UI");
         _soundManager = GetNodeOrNull<SoundManager>("SoundManager");
+        _bossDirector = GetNodeOrNull<BossDirector>("BossDirector");
 
         if (_player != null)
         {
@@ -102,6 +113,21 @@ public partial class World : Node2D
             _player.FoodGained += OnPlayerFoodGained;
             _player.Grew += OnPlayerGrew;
             _player.ComboTriggered += OnPlayerComboTriggered;
+            _player.HealthChanged += OnPlayerHealthChanged;
+            _player.Died += OnPlayerDied;
+        }
+
+        if (_bossDirector != null)
+        {
+            _bossDirector.BossEncounterStarted += OnBossEncounterStarted;
+            _bossDirector.BossHealthChanged += OnBossHealthChanged;
+            _bossDirector.BossDefeated += OnBossDefeated;
+            _bossDirector.BossEncounterEnded += OnBossEncounterEnded;
+        }
+
+        if (_ui != null)
+        {
+            _ui.RestartRequested += OnRestartRequested;
         }
 
         if (_soundManager != null)
@@ -144,6 +170,21 @@ public partial class World : Node2D
             _player.FoodGained -= OnPlayerFoodGained;
             _player.Grew -= OnPlayerGrew;
             _player.ComboTriggered -= OnPlayerComboTriggered;
+            _player.HealthChanged -= OnPlayerHealthChanged;
+            _player.Died -= OnPlayerDied;
+        }
+
+        if (_bossDirector != null)
+        {
+            _bossDirector.BossEncounterStarted -= OnBossEncounterStarted;
+            _bossDirector.BossHealthChanged -= OnBossHealthChanged;
+            _bossDirector.BossDefeated -= OnBossDefeated;
+            _bossDirector.BossEncounterEnded -= OnBossEncounterEnded;
+        }
+
+        if (_ui != null)
+        {
+            _ui.RestartRequested -= OnRestartRequested;
         }
 
         if (_soundManager != null)
@@ -486,6 +527,71 @@ public partial class World : Node2D
         ShowComboPopup(text, worldPosition);
     }
 
+    private void OnPlayerHealthChanged(int currentHealth, int maxHealth)
+    {
+        UpdateHud();
+    }
+
+    private void OnPlayerDied(Vector2 worldPosition)
+    {
+        _soundManager?.PlayDeath();
+        _ui?.HideBossBar();
+        _ui?.ShowGameOver();
+
+        // The cursor is hidden during play; the player needs it back to restart.
+        if (!Engine.IsEditorHint())
+        {
+            Input.MouseMode = Input.MouseModeEnum.Visible;
+        }
+    }
+
+    private void OnRestartRequested()
+    {
+        _ui?.HideGameOver();
+
+        if (!Engine.IsEditorHint())
+        {
+            Input.MouseMode = Input.MouseModeEnum.Hidden;
+        }
+
+        _bossDirector?.ResetEncounters();
+        _player?.ResetForNewRun();
+        UpdateHud();
+    }
+
+    private void OnBossEncounterStarted(string title, string subtitle, int maxHealth)
+    {
+        _ui?.ShowBossBar(title, maxHealth);
+
+        var bannerText = string.IsNullOrWhiteSpace(subtitle) ? title : title + "\n" + subtitle;
+        _ui?.ShowBanner(bannerText, BossIntroColor);
+
+        if (DebugEnabled)
+        {
+            GD.Print($"World: boss encounter started - {title} ({maxHealth} hp)");
+        }
+    }
+
+    private void OnBossHealthChanged(int currentHealth, int maxHealth)
+    {
+        _ui?.UpdateBossHealth(currentHealth, maxHealth);
+    }
+
+    private void OnBossDefeated(string title, bool wasFinalBoss)
+    {
+        _soundManager?.PlayGrow();
+        _ui?.ShowBanner(
+            wasFinalBoss ? "THE ABYSS IS YOURS" : $"{title} SLAIN",
+            wasFinalBoss ? VictoryColor : BossDefeatedColor,
+            wasFinalBoss ? 3.0 : 1.8
+        );
+    }
+
+    private void OnBossEncounterEnded()
+    {
+        _ui?.HideBossBar();
+    }
+
     private void OnMuteChanged(bool muted)
     {
         _ui?.SetMuted(muted);
@@ -501,6 +607,8 @@ public partial class World : Node2D
         _ui.UpdateStats(new HudStats
         {
             Size = _player.Size,
+            Health = _player.Health,
+            MaxHealth = _player.MaxHealth,
             FoodEaten = _player.FoodEaten,
             FoodTowardsNextSize = _player.FoodTowardsNextSize,
             FoodNeededForNextSize = _player.FoodNeededForNextSize,

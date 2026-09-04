@@ -15,6 +15,18 @@ public partial class Player : CharacterBody2D
     [Signal]
     public delegate void ComboTriggeredEventHandler(string text, Vector2 worldPosition);
 
+    [Signal]
+    public delegate void HealthChangedEventHandler(int currentHealth, int maxHealth);
+
+    [Signal]
+    public delegate void DamagedEventHandler(int remainingHealth, Vector2 worldPosition);
+
+    [Signal]
+    public delegate void DiedEventHandler(Vector2 worldPosition);
+
+    [Signal]
+    public delegate void RespawnedEventHandler();
+
     [Export]
     public float Speed = 200.0f;
 
@@ -123,7 +135,25 @@ public partial class Player : CharacterBody2D
     [Export]
     public bool ComboEnabled = false;
 
+    [Export(PropertyHint.Range, "1,10,1")]
+    public int MaxHealth = 3;
+
+    [Export]
+    public float InvulnerableSecondsAfterHit = 1.4f;
+
+    [Export]
+    public float InvulnerableFlashesPerSecond = 8.0f;
+
+    [Export]
+    public float KnockbackFromDamage = 420.0f;
+
+    [Export]
+    public float DeathAnimationSeconds = 1.1f;
+
     public int FoodEaten { get; private set; } = 0;
+    public int Health { get; private set; } = 3;
+    public bool IsDead { get; private set; } = false;
+    public bool IsInvulnerable => _invulnerableTimer > 0.0f;
     public int FoodTowardsNextSize => _foodTowardsNextSize;
     public int FoodNeededForNextSize => GetFoodRequiredForNextSize();
     public int ComboCount => ComboEnabled ? _comboCount : 0;
@@ -144,6 +174,9 @@ public partial class Player : CharacterBody2D
     private float _visualTilt = 0.0f;
     private float _bubbleSpawnTimer = 0.0f;
     private float _bubbleTurnSpawnCooldownRemaining = 0.0f;
+    private float _invulnerableTimer = 0.0f;
+    private Vector2 _startPosition = Vector2.Zero;
+    private Tween _deathTween;
     private readonly RandomNumberGenerator _bubbleRng = new();
 
     public override void _Ready()
@@ -159,6 +192,10 @@ public partial class Player : CharacterBody2D
         FishLevelVisuals.ApplyLevelFrames(_sprite, Size, includeEatAnimation: true);
         ApplySizeScale();
         UpdateDebugDepthLabel();
+
+        _startPosition = GlobalPosition;
+        Health = Mathf.Max(1, MaxHealth);
+        EmitSignal(SignalName.HealthChanged, Health, Mathf.Max(1, MaxHealth));
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -189,6 +226,16 @@ public partial class Player : CharacterBody2D
     public override void _PhysicsProcess(double delta)
     {
         var dt = (float)delta;
+        UpdateInvulnerability(dt);
+
+        if (IsDead)
+        {
+            // Keep drifting so the death animation carries the body along.
+            Velocity = Velocity.MoveToward(Vector2.Zero, Deceleration * dt);
+            MoveAndSlide();
+            return;
+        }
+
         _bubbleTurnSpawnCooldownRemaining = Math.Max(0.0f, _bubbleTurnSpawnCooldownRemaining - dt);
         var rawInput = Input.GetVector("move_left", "move_right", "move_up", "move_down");
         var hasInput = rawInput.LengthSquared() > 0.0001f;
@@ -220,7 +267,7 @@ public partial class Player : CharacterBody2D
 
     public int EatFood(int amount, Vector2? worldPosition)
     {
-        if (amount <= 0)
+        if (amount <= 0 || IsDead)
         {
             return 0;
         }
@@ -267,6 +314,158 @@ public partial class Player : CharacterBody2D
         }
         EmitSignal(SignalName.StatsChanged);
         return gainedAmount;
+    }
+
+    /// <summary>
+    /// Damages the player. Ignored while dead or during the invulnerability
+    /// window that follows a previous hit.
+    /// </summary>
+    public bool TakeDamage(int amount, Vector2 sourcePosition)
+    {
+        if (IsDead || amount <= 0 || IsInvulnerable)
+        {
+            return false;
+        }
+
+        Health = Math.Max(0, Health - amount);
+        EmitSignal(SignalName.HealthChanged, Health, Mathf.Max(1, MaxHealth));
+
+        var awayFromSource = GlobalPosition - sourcePosition;
+        if (awayFromSource.LengthSquared() <= 0.0001f)
+        {
+            awayFromSource = Vector2.Up;
+        }
+
+        ApplyKnockback(awayFromSource.Normalized() * KnockbackFromDamage);
+
+        if (Health <= 0)
+        {
+            Die();
+            return true;
+        }
+
+        _invulnerableTimer = Mathf.Max(0.0f, InvulnerableSecondsAfterHit);
+        EmitSignal(SignalName.Damaged, Health, GlobalPosition);
+        return true;
+    }
+
+    public void ApplyKnockback(Vector2 impulse)
+    {
+        Velocity += impulse;
+    }
+
+    /// <summary>
+    /// Grants a window where damage is ignored. Used after the player lands a bite
+    /// on a boss, so that swimming back out of it is not an automatic hit.
+    /// </summary>
+    public void GrantInvulnerability(float seconds)
+    {
+        if (IsDead)
+        {
+            return;
+        }
+
+        _invulnerableTimer = Mathf.Max(_invulnerableTimer, Mathf.Max(0.0f, seconds));
+    }
+
+    /// <summary>Restores the player to a fresh run: full health, size 1, no food.</summary>
+    public void ResetForNewRun()
+    {
+        IsDead = false;
+        Health = Mathf.Max(1, MaxHealth);
+        Size = 1;
+        FoodEaten = 0;
+        _foodTowardsNextSize = 0;
+        _comboCount = 0;
+        _comboTimeRemaining = 0.0;
+        _invulnerableTimer = Mathf.Max(0.0f, InvulnerableSecondsAfterHit);
+        Velocity = Vector2.Zero;
+        _smoothedInput = Vector2.Zero;
+
+        GlobalPosition = _startPosition;
+        ApplySizeScale();
+        FishLevelVisuals.ApplyLevelFrames(_sprite, Size, includeEatAnimation: true);
+
+        // The death animation may still be running if the player restarted quickly.
+        if (_deathTween != null && _deathTween.IsValid())
+        {
+            _deathTween.Kill();
+        }
+
+        _deathTween = null;
+
+        if (_sprite != null)
+        {
+            _sprite.Rotation = 0.0f;
+            _sprite.Modulate = Colors.White;
+        }
+
+        if (_collisionShape != null)
+        {
+            _collisionShape.SetDeferred(CollisionShape2D.PropertyName.Disabled, false);
+        }
+
+        EmitSignal(SignalName.HealthChanged, Health, Mathf.Max(1, MaxHealth));
+        EmitSignal(SignalName.StatsChanged);
+        EmitSignal(SignalName.Respawned);
+    }
+
+    private void Die()
+    {
+        if (IsDead)
+        {
+            return;
+        }
+
+        IsDead = true;
+        _invulnerableTimer = 0.0f;
+
+        if (_collisionShape != null)
+        {
+            _collisionShape.SetDeferred(CollisionShape2D.PropertyName.Disabled, true);
+        }
+
+        if (_sprite != null)
+        {
+            _sprite.Modulate = Colors.White;
+
+            _deathTween = CreateTween();
+            _deathTween.SetParallel(true);
+            _deathTween.TweenProperty(_sprite, "rotation", Mathf.Pi, DeathAnimationSeconds)
+                .SetTrans(Tween.TransitionType.Sine)
+                .SetEase(Tween.EaseType.Out);
+            _deathTween.TweenProperty(_sprite, "modulate:a", 0.25f, DeathAnimationSeconds)
+                .SetTrans(Tween.TransitionType.Cubic)
+                .SetEase(Tween.EaseType.In);
+        }
+
+        EmitSignal(SignalName.Died, GlobalPosition);
+    }
+
+    private void UpdateInvulnerability(float dt)
+    {
+        if (_invulnerableTimer <= 0.0f)
+        {
+            return;
+        }
+
+        _invulnerableTimer = Mathf.Max(0.0f, _invulnerableTimer - dt);
+
+        if (_sprite == null)
+        {
+            return;
+        }
+
+        if (_invulnerableTimer <= 0.0f)
+        {
+            _sprite.Modulate = Colors.White;
+            return;
+        }
+
+        // Blink while invulnerable so the state is readable.
+        var flashPhase = _invulnerableTimer * Mathf.Max(0.1f, InvulnerableFlashesPerSecond);
+        var isFlashOn = Mathf.PosMod(flashPhase, 1.0f) < 0.5f;
+        _sprite.Modulate = isFlashOn ? new Color(1.0f, 0.55f, 0.55f, 0.55f) : Colors.White;
     }
 
     private int GetFoodRequiredForNextSize()
