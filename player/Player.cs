@@ -156,6 +156,7 @@ public partial class Player : CharacterBody2D
         TinyBubbleScene ??= GD.Load<PackedScene>("res://effects/tiny_bubble.tscn");
         _bubbleRng.Randomize();
         ResetBubbleSpawnTimer();
+        FishLevelVisuals.ApplyLevelFrames(_sprite, Size, includeEatAnimation: true);
         ApplySizeScale();
         UpdateDebugDepthLabel();
     }
@@ -249,6 +250,7 @@ public partial class Player : CharacterBody2D
 
         if (grew)
         {
+            FishLevelVisuals.ApplyLevelFrames(_sprite, Size, includeEatAnimation: true);
             ApplySizeScale();
             EmitSignal(SignalName.Grew, "<GROWN>", GlobalPosition + new Vector2(0.0f, -32.0f));
             if (_world?.IsDebugEnabled() == true)

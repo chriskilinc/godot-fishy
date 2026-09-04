@@ -70,6 +70,7 @@ public partial class EnemyFish : Area2D
     private World _world;
     private Player _player;
     private AnimatedSprite2D _animatedSprite;
+    private CollisionShape2D _collisionShape;
     private Label _debugLevelLabel;
     private Area2D _avoidanceSensor;
     private SoundManager _soundManager;
@@ -86,6 +87,7 @@ public partial class EnemyFish : Area2D
     private Vector2 _debugSteeringTarget = Vector2.Right;
     private Vector2 _debugAvoidanceSteering = Vector2.Zero;
     private string _debugStateLabel = "wander";
+    private Vector2 _baseCollisionShapeSize = Vector2.Zero;
 
     public override void _Ready()
     {
@@ -93,13 +95,52 @@ public partial class EnemyFish : Area2D
         _world = GetParentOrNull<World>();
         _player = _world?.GetNodeOrNull<Player>("Player");
         _animatedSprite = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        _collisionShape = GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
         _debugLevelLabel = GetNodeOrNull<Label>("DebugLevelLabel");
         _avoidanceSensor = GetNodeOrNull<Area2D>("AvoidanceSensor");
         _soundManager = _world?.GetNodeOrNull<SoundManager>("SoundManager");
         _wasDebugDrawEnabled = _world?.IsDebugEnabled() == true;
         _direction = GetRandomDirection();
         ResetWanderTimer();
+        FishLevelVisuals.ApplyLevelFrames(_animatedSprite, Size, includeEatAnimation: false);
+        InitializeCollisionShape();
+        ApplyCollisionShapeByLevel();
         UpdateDebugLevelLabel();
+    }
+
+    private void InitializeCollisionShape()
+    {
+        if (_collisionShape?.Shape is not RectangleShape2D rectangleShape)
+        {
+            return;
+        }
+
+        if (rectangleShape.Duplicate() is RectangleShape2D uniqueRectangle)
+        {
+            _collisionShape.Shape = uniqueRectangle;
+            rectangleShape = uniqueRectangle;
+        }
+
+        _baseCollisionShapeSize = rectangleShape.Size;
+    }
+
+    private void ApplyCollisionShapeByLevel()
+    {
+        if (_collisionShape?.Shape is not RectangleShape2D rectangleShape)
+        {
+            return;
+        }
+
+        if (_baseCollisionShapeSize == Vector2.Zero)
+        {
+            _baseCollisionShapeSize = rectangleShape.Size;
+        }
+
+        var collisionMultiplier = FishLevelVisuals.GetCollisionSizeMultiplierForLevel(Size);
+        rectangleShape.Size = new Vector2(
+            _baseCollisionShapeSize.X * collisionMultiplier.X,
+            _baseCollisionShapeSize.Y * collisionMultiplier.Y
+        );
     }
 
     public override void _Process(double delta)

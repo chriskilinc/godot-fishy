@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cdwwx5p0y5v4r" path="res://fish/EnemyFish.cs" id="1_sgogb"]
 [ext_resource type="Texture2D" uid="uid://vkkaurbkq6i0" path="res://icon.svg" id="1_xu20i"]
-[ext_resource type="Texture2D" uid="uid://bulv2iad03gx5" path="res://assets/SpearFishing Assets Pack/SpearFishing Assets Pack/Sprites/Fish1 - 16x16/Orange.png" id="3_wy1ge"]
+[ext_resource type="Texture2D" uid="uid://bulv2iad03gx5" path="res://assets/fish/fish1/Orange.png" id="3_wy1ge"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_12uvg"]
 atlas = ExtResource("3_wy1ge")

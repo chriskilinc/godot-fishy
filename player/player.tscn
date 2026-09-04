@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://tob4ox45b85k"]
 
 [ext_resource type="Script" uid="uid://8f1hgl4jlmkr" path="res://player/Player.cs" id="1_onrkg"]
-[ext_resource type="Texture2D" uid="uid://ctiy3q55lv4a" path="res://assets/SpearFishing Assets Pack/SpearFishing Assets Pack/Sprites/Fish2 - 32x16/Blue.png" id="2_g1dw6"]
+[ext_resource type="Texture2D" uid="uid://ctiy3q55lv4a" path="res://assets/fish/fish2/Blue.png" id="2_g1dw6"]
 [ext_resource type="Curve" uid="uid://dfxquwose5ndb" path="res://player/food_curve.tres" id="2_yw30f"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yw30f"]

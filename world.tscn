@@ -38,6 +38,7 @@
 [node name="World" type="Node2D" unique_id=1021918435]
 script = ExtResource("1_world")
 FishScene = ExtResource("2_fj7yv")
+MaxFishLevel = 5
 
 [node name="Sky3Parallax" type="Node2D" parent="." unique_id=2033048171]
 position = Vector2(287, -174)

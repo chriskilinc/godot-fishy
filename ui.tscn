@@ -57,7 +57,7 @@ anchor_right = 0.5
 offset_left = -160.0
 offset_top = 16.0
 offset_right = 160.0
-offset_bottom = 76.0
+offset_bottom = 140.0
 grow_horizontal = 2
 
 [node name="GrowthBar" type="TextureProgressBar" parent="GrowthPanel" unique_id=327666859]
@@ -81,6 +81,84 @@ grow_vertical = 2
 text = "0/10"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="LevelPreview" type="HBoxContainer" parent="GrowthPanel" unique_id=131845770]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="PrevLevel" type="VBoxContainer" parent="GrowthPanel/LevelPreview" unique_id=1922478152]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="PrevIconPanel" type="PanelContainer" parent="GrowthPanel/LevelPreview/PrevLevel" unique_id=1180418170]
+custom_minimum_size = Vector2(58, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+self_modulate = Color(0.78, 0.86, 1, 0.92)
+
+[node name="PrevIcon" type="TextureRect" parent="GrowthPanel/LevelPreview/PrevLevel/PrevIconPanel" unique_id=1150336624]
+custom_minimum_size = Vector2(52, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PrevLabel" type="Label" parent="GrowthPanel/LevelPreview/PrevLevel" unique_id=1540411422]
+layout_mode = 2
+text = "Prev lvl"
+horizontal_alignment = 1
+
+[node name="CurrentLevel" type="VBoxContainer" parent="GrowthPanel/LevelPreview" unique_id=1042132896]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="CurrentIconPanel" type="PanelContainer" parent="GrowthPanel/LevelPreview/CurrentLevel" unique_id=301718004]
+custom_minimum_size = Vector2(58, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+self_modulate = Color(1, 1, 0.78, 1)
+
+[node name="CurrentIcon" type="TextureRect" parent="GrowthPanel/LevelPreview/CurrentLevel/CurrentIconPanel" unique_id=1528891518]
+custom_minimum_size = Vector2(52, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CurrentLabel" type="Label" parent="GrowthPanel/LevelPreview/CurrentLevel" unique_id=1828952251]
+layout_mode = 2
+text = "Current lvl"
+horizontal_alignment = 1
+
+[node name="NextLevel" type="VBoxContainer" parent="GrowthPanel/LevelPreview" unique_id=436025891]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
+
+[node name="NextIconPanel" type="PanelContainer" parent="GrowthPanel/LevelPreview/NextLevel" unique_id=377874021]
+custom_minimum_size = Vector2(58, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+self_modulate = Color(0.78, 0.86, 1, 0.92)
+
+[node name="NextIcon" type="TextureRect" parent="GrowthPanel/LevelPreview/NextLevel/NextIconPanel" unique_id=1783014897]
+custom_minimum_size = Vector2(52, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NextLabel" type="Label" parent="GrowthPanel/LevelPreview/NextLevel" unique_id=571430670]
+layout_mode = 2
+text = "Next lvl"
+horizontal_alignment = 1
 
 [node name="PauseButton" type="Button" parent="." unique_id=1769526700]
 visible = false

@@ -55,7 +55,7 @@ public partial class World : Node2D
     public int RespawnSearchAttempts = 16;
 
     [Export(PropertyHint.Range, "1,20,1")]
-    public int MaxFishLevel = 5;
+    public int MaxFishLevel = 6;
 
     [Export(PropertyHint.Range, "0,20000,1")]
     public float LevelDepthStart = 0.0f;
@@ -79,7 +79,7 @@ public partial class World : Node2D
 
     private RandomNumberGenerator _rng = new RandomNumberGenerator();
     private Vector2 _spawnAreaMin = new Vector2(0, 0);
-    private Vector2 _spawnAreaMax = new Vector2(2000, 5000);
+    private Vector2 _spawnAreaMax = new Vector2(2000, 6000);
     private Player _player;
     private GameUI _ui;
     private SoundManager _soundManager;

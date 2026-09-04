@@ -9,6 +9,12 @@ public partial class GameUI : Control
     private ProgressBar _comboTimerBar;
     private TextureProgressBar _growthBar;
     private Label _growthLabel;
+    private TextureRect _prevLevelIcon;
+    private TextureRect _currentLevelIcon;
+    private TextureRect _nextLevelIcon;
+    private PanelContainer _prevLevelPanel;
+    private PanelContainer _currentLevelPanel;
+    private PanelContainer _nextLevelPanel;
     private Label _mutedLabel;
     private Button _pauseButton;
     private Control _floatingTextLayer;
@@ -21,6 +27,12 @@ public partial class GameUI : Control
         _comboTimerBar = GetNodeOrNull<ProgressBar>("BottomRight/ComboTimerBar");
         _growthBar = GetNodeOrNull<TextureProgressBar>("GrowthPanel/GrowthBar");
         _growthLabel = GetNodeOrNull<Label>("GrowthPanel/GrowthBar/GrowthLabel");
+        _prevLevelIcon = GetNodeOrNull<TextureRect>("GrowthPanel/LevelPreview/PrevLevel/PrevIconPanel/PrevIcon");
+        _currentLevelIcon = GetNodeOrNull<TextureRect>("GrowthPanel/LevelPreview/CurrentLevel/CurrentIconPanel/CurrentIcon");
+        _nextLevelIcon = GetNodeOrNull<TextureRect>("GrowthPanel/LevelPreview/NextLevel/NextIconPanel/NextIcon");
+        _prevLevelPanel = GetNodeOrNull<PanelContainer>("GrowthPanel/LevelPreview/PrevLevel/PrevIconPanel");
+        _currentLevelPanel = GetNodeOrNull<PanelContainer>("GrowthPanel/LevelPreview/CurrentLevel/CurrentIconPanel");
+        _nextLevelPanel = GetNodeOrNull<PanelContainer>("GrowthPanel/LevelPreview/NextLevel/NextIconPanel");
         _mutedLabel = GetNodeOrNull<Label>("MutedLabel");
         _pauseButton = GetNodeOrNull<Button>("PauseButton");
         _floatingTextLayer = GetNodeOrNull<Control>("FloatingTextLayer");
@@ -34,6 +46,7 @@ public partial class GameUI : Control
         ProcessMode = ProcessModeEnum.Always;
         UpdatePauseButtonText();
         SetMuted(false);
+        UpdateLevelPreview(1);
     }
 
     public void SetMuted(bool muted)
@@ -128,6 +141,50 @@ public partial class GameUI : Control
         {
             _growthLabel.Text = $"{clampedValue}/{maxValue}";
         }
+
+        UpdateLevelPreview(stats.Size);
+    }
+
+    private void UpdateLevelPreview(int currentLevel)
+    {
+        var clampedCurrent = Mathf.Max(1, currentLevel);
+        var maxDefinedLevel = Mathf.Max(1, FishLevelVisuals.MaxDefinedLevel);
+        var prevLevel = Mathf.Clamp(clampedCurrent - 1, 1, maxDefinedLevel);
+        var currentDisplayLevel = Mathf.Clamp(clampedCurrent, 1, maxDefinedLevel);
+        var nextLevel = Mathf.Clamp(clampedCurrent + 1, 1, maxDefinedLevel);
+
+        if (_prevLevelIcon != null)
+        {
+            _prevLevelIcon.Texture = FishLevelVisuals.GetIconTextureForLevel(prevLevel);
+        }
+
+        if (_currentLevelIcon != null)
+        {
+            _currentLevelIcon.Texture = FishLevelVisuals.GetIconTextureForLevel(currentDisplayLevel);
+        }
+
+        if (_nextLevelIcon != null)
+        {
+            _nextLevelIcon.Texture = FishLevelVisuals.GetIconTextureForLevel(nextLevel);
+        }
+
+        SetLevelPanelHighlight(_prevLevelPanel, false);
+        SetLevelPanelHighlight(_currentLevelPanel, true);
+        SetLevelPanelHighlight(_nextLevelPanel, false);
+    }
+
+    private static void SetLevelPanelHighlight(PanelContainer panel, bool highlighted)
+    {
+        if (panel == null)
+        {
+            return;
+        }
+
+        panel.SelfModulate = highlighted
+            ? new Color(1.0f, 1.0f, 0.78f, 1.0f)
+            : new Color(0.78f, 0.86f, 1.0f, 0.92f);
+
+        panel.Scale = highlighted ? new Vector2(1.07f, 1.07f) : Vector2.One;
     }
 
     public void ShowFoodPopup(int amount, Vector2 screenPosition)
