@@ -1,0 +1,99 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://bosses/GothMermaid.cs" id="1_mermaid_script"]
+[ext_resource type="Texture2D" path="res://assets/bosses/goth_mermaid.png" id="2_mermaid_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mermaid_0"]
+atlas = ExtResource("2_mermaid_sheet")
+region = Rect2(0, 0, 48, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mermaid_1"]
+atlas = ExtResource("2_mermaid_sheet")
+region = Rect2(48, 0, 48, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mermaid_2"]
+atlas = ExtResource("2_mermaid_sheet")
+region = Rect2(96, 0, 48, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mermaid_3"]
+atlas = ExtResource("2_mermaid_sheet")
+region = Rect2(144, 0, 48, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mermaid_4"]
+atlas = ExtResource("2_mermaid_sheet")
+region = Rect2(192, 0, 48, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mermaid_5"]
+atlas = ExtResource("2_mermaid_sheet")
+region = Rect2(240, 0, 48, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mermaid_6"]
+atlas = ExtResource("2_mermaid_sheet")
+region = Rect2(288, 0, 48, 56)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mermaid_7"]
+atlas = ExtResource("2_mermaid_sheet")
+region = Rect2(336, 0, 48, 56)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mermaid"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mermaid_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mermaid_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mermaid_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mermaid_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mermaid_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mermaid_5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mermaid_6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mermaid_7")
+}],
+"loop": 1,
+"name": &"swim",
+"speed": 8.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_mermaid"]
+radius = 10.0
+height = 46.0
+
+[node name="GothMermaid" type="Area2D"]
+scale = Vector2(1.8, 1.8)
+script = ExtResource("1_mermaid_script")
+BossTitle = "THE GOTH MERMAID"
+BossSubtitle = "SHE SINGS. YOU SINK."
+MaxHealth = 6
+ContactDamage = 1
+MinimumPlayerSizeToDamage = 4
+FoodReward = 80
+ChaseSpeed = 110.0
+DashSpeed = 520.0
+TelegraphSeconds = 1.1
+AttackSeconds = 0.6
+ExhaustedSeconds = 2.4
+ChaseSecondsBeforeAttack = 1.6
+AttackTriggerDistance = 380.0
+LureRadius = 420.0
+LureStrength = 2400.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_mermaid")
+animation = &"swim"
+autoplay = "swim"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_mermaid")
