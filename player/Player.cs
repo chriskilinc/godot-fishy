@@ -58,7 +58,7 @@ public partial class Player : CharacterBody2D
     public float CameraZoomStep = 0.2f;
 
     [Export]
-    public float MinCameraZoom = 1.5f;
+    public float MinCameraZoom = 1f;
 
     [Export]
     public float MaxCameraZoom = 3f;
@@ -138,6 +138,7 @@ public partial class Player : CharacterBody2D
     private CollisionShape2D _collisionShape;
     private AnimatedSprite2D _sprite;
     private Camera2D _camera;
+    private Label _debugDepthLabel;
     private Vector2 _smoothedInput = Vector2.Zero;
     private float _swimTime = 0.0f;
     private float _visualTilt = 0.0f;
@@ -151,10 +152,12 @@ public partial class Player : CharacterBody2D
         _collisionShape = GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
         _sprite = GetNodeOrNull<AnimatedSprite2D>("Sprite");
         _camera = GetNodeOrNull<Camera2D>("Camera2D");
+        _debugDepthLabel = GetNodeOrNull<Label>("DebugDepthLabel");
         TinyBubbleScene ??= GD.Load<PackedScene>("res://effects/tiny_bubble.tscn");
         _bubbleRng.Randomize();
         ResetBubbleSpawnTimer();
         ApplySizeScale();
+        UpdateDebugDepthLabel();
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -179,6 +182,7 @@ public partial class Player : CharacterBody2D
     public override void _Process(double delta)
     {
         UpdateCombo(delta);
+        UpdateDebugDepthLabel();
     }
 
     public override void _PhysicsProcess(double delta)
@@ -459,5 +463,29 @@ public partial class Player : CharacterBody2D
         var minInterval = Mathf.Max(0.01f, BubbleSpawnMinInterval);
         var maxInterval = Mathf.Max(minInterval, BubbleSpawnMaxInterval);
         _bubbleSpawnTimer = _bubbleRng.RandfRange(minInterval, maxInterval);
+    }
+
+    private void UpdateDebugDepthLabel()
+    {
+        if (_debugDepthLabel == null)
+        {
+            return;
+        }
+
+        var showDebug = _world?.IsDebugEnabled() == true;
+        _debugDepthLabel.Visible = showDebug;
+        if (!showDebug)
+        {
+            return;
+        }
+
+        var depth = GlobalPosition.Y;
+        if (_world != null)
+        {
+            var playableArea = _world.GetPlayableArea();
+            depth = Mathf.Max(0.0f, GlobalPosition.Y - playableArea.Position.Y);
+        }
+
+        _debugDepthLabel.Text = $"{Mathf.RoundToInt(depth)}m";
     }
 }

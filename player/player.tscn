@@ -161,3 +161,15 @@ shape = SubResource("RectangleShape2D_hqtel")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1039120316]
 zoom = Vector2(3, 3)
+
+[node name="DebugDepthLabel" type="Label" parent="." unique_id=121224533]
+offset_left = -10.000001
+offset_top = 9.000001
+offset_right = 47.142853
+offset_bottom = 32.0
+scale = Vector2(0.35, 0.35)
+theme_override_colors/font_color = Color(0.82, 0.93, 1, 0.95)
+theme_override_colors/font_outline_color = Color(0.01, 0.07, 0.1, 0.9)
+theme_override_constants/outline_size = 4
+text = "5000m"
+horizontal_alignment = 1
