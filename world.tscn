@@ -92,4 +92,4 @@ FleeSfxOptions = [ExtResource("snd_flee_1"), ExtResource("snd_flee_2"), ExtResou
 [node name="UI" parent="CanvasLayer" unique_id=983928655 instance=ExtResource("4_aqk2v")]
 
 [node name="Player" parent="." unique_id=434732959 instance=ExtResource("1_f3sb7")]
-position = Vector2(589, 344)
+position = Vector2(955, 145)

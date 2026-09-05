@@ -52,7 +52,7 @@ public partial class EnemyFish : Area2D
     public float IdlePauseMaxSeconds { get; set; } = 1.1f;
 
     [Export]
-    public float DespawnDistanceFromPlayer { get; set; } = 600.0f;
+    public float DespawnDistanceFromPlayer { get; set; } = 500.0f;
 
     [Export]
     public float DespawnAfterFarSeconds { get; set; } = 10.0f;

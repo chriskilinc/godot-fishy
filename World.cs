@@ -7,7 +7,7 @@ public partial class World : Node2D
     public PackedScene FishScene;
 
     [Export]
-    public int FishCount = 10;
+    public int FishCount = 15;
 
     [Export]
     public Vector2 SpawnAreaMin
@@ -46,7 +46,7 @@ public partial class World : Node2D
     public float RespawnNearPlayerMinDistance = 260f;
 
     [Export(PropertyHint.Range, "0,6000,1")]
-    public float RespawnNearPlayerMaxDistance = 620f;
+    public float RespawnNearPlayerMaxDistance = 520f;
 
     [Export(PropertyHint.Range, "0,1500,1")]
     public float RespawnOutOfSightMargin = 64f;
@@ -55,7 +55,7 @@ public partial class World : Node2D
     public int RespawnSearchAttempts = 16;
 
     [Export(PropertyHint.Range, "1,20,1")]
-    public int MaxFishLevel = 6;
+    public int MaxFishLevel = 6; // TODO: maybe this should be handled by the fish script itself
 
     [Export(PropertyHint.Range, "0,20000,1")]
     public float LevelDepthStart = 0.0f;
@@ -64,7 +64,7 @@ public partial class World : Node2D
     public float LevelDepthRangeSize = 2000.0f;
 
     [Export(PropertyHint.Range, "1,10000,1")]
-    public float LevelDepthStep = 1000.0f;
+    public float LevelDepthStep = 750.0f;
 
     [Export]
     public bool DebugEnabled
@@ -249,6 +249,9 @@ public partial class World : Node2D
         fish.TreeExited += OnFishTreeExited;
     }
 
+    // Select a fish level from every depth band that contains this position.
+    // Bands may overlap when the range is wider than the step, so choose among
+    // all matches to keep the level distribution varied at those boundaries.
     private int GetFishLevelForDepth(float depthY)
     {
         var maxLevel = Mathf.Max(1, MaxFishLevel);
@@ -272,6 +275,8 @@ public partial class World : Node2D
             return matchingLevels[_rng.RandiRange(0, matchingLevels.Count - 1)];
         }
 
+        // Keep positions above the configured depth at the smallest level and
+        // positions below all bands at the largest configured level.
         if (depthY < depthStart)
         {
             return 1;
@@ -330,7 +335,7 @@ public partial class World : Node2D
 
     private Vector2 GetFishSpawnPosition()
     {
-        if (!Engine.IsEditorHint() && _player != null && TryGetOutOfSightSpawnPosition(out var outOfSightPosition))
+        if (!Engine.IsEditorHint() && !DebugEnabled && _player != null && TryGetOutOfSightSpawnPosition(out var outOfSightPosition))
         {
             return outOfSightPosition;
         }
