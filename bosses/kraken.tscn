@@ -1,0 +1,249 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://bosses/Kraken.cs" id="1_kraken_script"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/6/Idle.png" id="tex_idle"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/6/Walk.png" id="tex_swim"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/6/Attack.png" id="tex_attack"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/6/Hurt.png" id="tex_hurt"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/6/Death.png" id="tex_death"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_idle_0"]
+atlas = ExtResource("tex_idle")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_idle_1"]
+atlas = ExtResource("tex_idle")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_idle_2"]
+atlas = ExtResource("tex_idle")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_idle_3"]
+atlas = ExtResource("tex_idle")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_idle_4"]
+atlas = ExtResource("tex_idle")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_idle_5"]
+atlas = ExtResource("tex_idle")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_swim_0"]
+atlas = ExtResource("tex_swim")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_swim_1"]
+atlas = ExtResource("tex_swim")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_swim_2"]
+atlas = ExtResource("tex_swim")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_swim_3"]
+atlas = ExtResource("tex_swim")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_swim_4"]
+atlas = ExtResource("tex_swim")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_swim_5"]
+atlas = ExtResource("tex_swim")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_attack_0"]
+atlas = ExtResource("tex_attack")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_attack_1"]
+atlas = ExtResource("tex_attack")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_attack_2"]
+atlas = ExtResource("tex_attack")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_attack_3"]
+atlas = ExtResource("tex_attack")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_attack_4"]
+atlas = ExtResource("tex_attack")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_attack_5"]
+atlas = ExtResource("tex_attack")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_hurt_0"]
+atlas = ExtResource("tex_hurt")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_hurt_1"]
+atlas = ExtResource("tex_hurt")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_death_0"]
+atlas = ExtResource("tex_death")
+region = Rect2(0, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_death_1"]
+atlas = ExtResource("tex_death")
+region = Rect2(48, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_death_2"]
+atlas = ExtResource("tex_death")
+region = Rect2(96, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_death_3"]
+atlas = ExtResource("tex_death")
+region = Rect2(144, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_death_4"]
+atlas = ExtResource("tex_death")
+region = Rect2(192, 0, 48, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kraken_death_5"]
+atlas = ExtResource("tex_death")
+region = Rect2(240, 0, 48, 48)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_kraken"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_idle_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_idle_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_idle_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_idle_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_idle_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_idle_5")
+}],
+"loop": 1,
+"name": &"idle",
+"speed": 7.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_swim_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_swim_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_swim_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_swim_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_swim_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_swim_5")
+}],
+"loop": 1,
+"name": &"swim",
+"speed": 9.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_attack_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_attack_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_attack_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_attack_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_attack_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_attack_5")
+}],
+"loop": 1,
+"name": &"attack",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_hurt_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_hurt_1")
+}],
+"loop": 1,
+"name": &"hurt",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_death_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_death_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_death_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_death_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_death_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kraken_death_5")
+}],
+"loop": 0,
+"name": &"death",
+"speed": 8.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_kraken"]
+radius = 17.0
+
+[node name="Kraken" type="Area2D"]
+scale = Vector2(2.2, 2.2)
+script = ExtResource("1_kraken_script")
+BossTitle = "THE KRAKEN"
+BossSubtitle = "NOTHING DOWN HERE GROWS BIGGER"
+MaxHealth = 12
+ContactDamage = 1
+MinimumPlayerSizeToDamage = 8
+FoodReward = 220
+ChaseSpeed = 128.0
+DashSpeed = 620.0
+TelegraphSeconds = 0.85
+AttackSeconds = 0.8
+ExhaustedSeconds = 2.0
+ChaseSecondsBeforeAttack = 1.4
+AttackTriggerDistance = 430.0
+PhaseTwoSpeedMultiplier = 1.45
+InkCloudRadius = 170.0
+DashHomingStrength = 1.6
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_kraken")
+animation = &"swim"
+autoplay = "swim"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_kraken")

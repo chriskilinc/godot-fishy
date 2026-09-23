@@ -3,7 +3,14 @@ using Godot;
 
 public partial class GameUI : Control
 {
+    [Signal]
+    public delegate void RestartRequestedEventHandler();
+
+    private const char FullHeart = '\u2665';
+    private const char EmptyHeart = '\u2661';
+
     private Label _sizeLabel;
+    private Label _healthLabel;
     private Label _foodLabel;
     private Label _comboLabel;
     private ProgressBar _comboTimerBar;
@@ -18,10 +25,17 @@ public partial class GameUI : Control
     private Label _mutedLabel;
     private Button _pauseButton;
     private Control _floatingTextLayer;
+    private Control _bossPanel;
+    private Label _bossNameLabel;
+    private ProgressBar _bossHealthBar;
+    private Label _bannerLabel;
+    private Control _gameOverPanel;
+    private Button _restartButton;
 
     public override void _Ready()
     {
         _sizeLabel = GetNodeOrNull<Label>("TopLeft/SizeLabel");
+        _healthLabel = GetNodeOrNull<Label>("TopLeft/HealthLabel");
         _foodLabel = GetNodeOrNull<Label>("TopLeft/FoodLabel");
         _comboLabel = GetNodeOrNull<Label>("TopLeft/ComboLabel");
         _comboTimerBar = GetNodeOrNull<ProgressBar>("BottomRight/ComboTimerBar");
@@ -36,6 +50,12 @@ public partial class GameUI : Control
         _mutedLabel = GetNodeOrNull<Label>("MutedLabel");
         _pauseButton = GetNodeOrNull<Button>("PauseButton");
         _floatingTextLayer = GetNodeOrNull<Control>("FloatingTextLayer");
+        _bossPanel = GetNodeOrNull<Control>("BossPanel");
+        _bossNameLabel = GetNodeOrNull<Label>("BossPanel/BossNameLabel");
+        _bossHealthBar = GetNodeOrNull<ProgressBar>("BossPanel/BossHealthBar");
+        _bannerLabel = GetNodeOrNull<Label>("BannerLabel");
+        _gameOverPanel = GetNodeOrNull<Control>("GameOverPanel");
+        _restartButton = GetNodeOrNull<Button>("GameOverPanel/GameOverBox/RestartButton");
 
         if (_comboTimerBar != null)
         {
@@ -43,10 +63,132 @@ public partial class GameUI : Control
             _comboTimerBar.ShowPercentage = false;
         }
 
+        if (_bossHealthBar != null)
+        {
+            _bossHealthBar.SelfModulate = new Color("c1272d");
+            _bossHealthBar.ShowPercentage = false;
+        }
+
+        if (_restartButton != null)
+        {
+            _restartButton.Pressed += OnRestartPressed;
+        }
+
+        HideBossBar();
+        HideGameOver();
+
+        if (_bannerLabel != null)
+        {
+            _bannerLabel.Visible = false;
+        }
+
         ProcessMode = ProcessModeEnum.Always;
         UpdatePauseButtonText();
         SetMuted(false);
         UpdateLevelPreview(1);
+    }
+
+    public override void _ExitTree()
+    {
+        if (_restartButton != null)
+        {
+            _restartButton.Pressed -= OnRestartPressed;
+        }
+    }
+
+    /// <summary>Shows the boss name plate and health bar for a fight that just started.</summary>
+    public void ShowBossBar(string bossName, int maxHealth)
+    {
+        if (_bossPanel == null)
+        {
+            return;
+        }
+
+        _bossPanel.Visible = true;
+
+        if (_bossNameLabel != null)
+        {
+            _bossNameLabel.Text = bossName;
+        }
+
+        if (_bossHealthBar != null)
+        {
+            _bossHealthBar.MaxValue = Mathf.Max(1, maxHealth);
+            _bossHealthBar.Value = Mathf.Max(1, maxHealth);
+        }
+    }
+
+    public void UpdateBossHealth(int currentHealth, int maxHealth)
+    {
+        if (_bossHealthBar == null)
+        {
+            return;
+        }
+
+        _bossHealthBar.MaxValue = Mathf.Max(1, maxHealth);
+        _bossHealthBar.Value = Mathf.Clamp(currentHealth, 0, Mathf.Max(1, maxHealth));
+    }
+
+    public void HideBossBar()
+    {
+        if (_bossPanel != null)
+        {
+            _bossPanel.Visible = false;
+        }
+    }
+
+    /// <summary>Fades a big line of text across the middle of the screen.</summary>
+    public void ShowBanner(string text, Color color, double holdSeconds = 1.6)
+    {
+        if (_bannerLabel == null || string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        _bannerLabel.Text = text;
+        _bannerLabel.AddThemeColorOverride("font_color", color);
+        _bannerLabel.Visible = true;
+        _bannerLabel.Modulate = new Color(1.0f, 1.0f, 1.0f, 0.0f);
+
+        var bannerTween = CreateTween();
+        bannerTween.TweenProperty(_bannerLabel, "modulate:a", 1.0f, 0.35f)
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.Out);
+        bannerTween.TweenInterval(holdSeconds);
+        bannerTween.TweenProperty(_bannerLabel, "modulate:a", 0.0f, 0.6f)
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.In);
+        bannerTween.Finished += () =>
+        {
+            if (_bannerLabel != null)
+            {
+                _bannerLabel.Visible = false;
+            }
+        };
+    }
+
+    public void ShowGameOver()
+    {
+        if (_gameOverPanel == null)
+        {
+            return;
+        }
+
+        _gameOverPanel.Visible = true;
+        _restartButton?.GrabFocus();
+    }
+
+    public void HideGameOver()
+    {
+        if (_gameOverPanel != null)
+        {
+            _gameOverPanel.Visible = false;
+        }
+    }
+
+    private void OnRestartPressed()
+    {
+        EmitSignal(SignalName.RestartRequested);
     }
 
     public void SetMuted(bool muted)
@@ -113,6 +255,13 @@ public partial class GameUI : Control
         if (_foodLabel != null)
         {
             _foodLabel.Text = $"Food: {stats.FoodEaten}";
+        }
+
+        if (_healthLabel != null)
+        {
+            var maxHealth = Mathf.Max(1, stats.MaxHealth);
+            var currentHealth = Mathf.Clamp(stats.Health, 0, maxHealth);
+            _healthLabel.Text = new string(FullHeart, currentHealth) + new string(EmptyHeart, maxHealth - currentHealth);
         }
 
         if (_comboLabel != null)

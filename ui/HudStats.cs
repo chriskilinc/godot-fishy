@@ -1,6 +1,8 @@
 public readonly struct HudStats
 {
     public int Size { get; init; }
+    public int Health { get; init; }
+    public int MaxHealth { get; init; }
     public int FoodEaten { get; init; }
     public int FoodTowardsNextSize { get; init; }
     public int FoodNeededForNextSize { get; init; }

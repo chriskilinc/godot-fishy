@@ -39,6 +39,11 @@ offset_bottom = 84.0
 layout_mode = 2
 text = "Size: 1"
 
+[node name="HealthLabel" type="Label" parent="TopLeft"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.42, 0.48, 1)
+theme_override_font_sizes/font_size = 20
+
 [node name="FoodLabel" type="Label" parent="TopLeft" unique_id=1943302436]
 visible = false
 layout_mode = 2
@@ -207,5 +212,107 @@ visible = false
 layout_mode = 2
 value = 1.0
 show_percentage = false
+
+[node name="BossPanel" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_top = 156.0
+offset_right = 220.0
+offset_bottom = 216.0
+grow_horizontal = 2
+
+[node name="BossNameLabel" type="Label" parent="BossPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.45, 0.55, 1)
+theme_override_font_sizes/font_size = 22
+text = "BOSS"
+horizontal_alignment = 1
+
+[node name="BossHealthBar" type="ProgressBar" parent="BossPanel"]
+layout_mode = 2
+max_value = 10.0
+value = 10.0
+show_percentage = false
+
+[node name="BannerLabel" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -440.0
+offset_top = -180.0
+offset_right = 440.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 44
+text = "BOSS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameOverPanel" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dim" type="ColorRect" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.02, 0.06, 0.72)
+
+[node name="GameOverBox" type="VBoxContainer" parent="GameOverPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -90.0
+offset_right = 260.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="GameOverLabel" type="Label" parent="GameOverPanel/GameOverBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.4, 1)
+theme_override_font_sizes/font_size = 52
+text = "YOU WERE EATEN"
+horizontal_alignment = 1
+
+[node name="GameOverHint" type="Label" parent="GameOverPanel/GameOverBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 20
+text = "The reef resets. Grow again."
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="GameOverPanel/GameOverBox"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Try Again"
 
 [connection signal="pressed" from="PauseButton" to="." method="_OnPausePressed"]

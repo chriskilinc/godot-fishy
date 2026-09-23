@@ -6,6 +6,9 @@
 [ext_resource type="Script" uid="uid://0a1yf6f7tiob" path="res://sound/SoundManager.cs" id="2_sound"]
 [ext_resource type="Script" uid="uid://cvripydlxxw27" path="res://input/GlobalInput.cs" id="3_global_input"]
 [ext_resource type="PackedScene" uid="uid://cjn2mmcw4fnrr" path="res://ui.tscn" id="4_aqk2v"]
+[ext_resource type="Script" path="res://bosses/BossDirector.cs" id="6_boss_director"]
+[ext_resource type="PackedScene" path="res://bosses/goth_mermaid.tscn" id="7_goth_mermaid"]
+[ext_resource type="PackedScene" path="res://bosses/kraken.tscn" id="8_kraken"]
 [ext_resource type="AudioStream" uid="uid://diukpbo7p6b84" path="res://sound/Fiskspelet_musik_2.wav" id="5_qktwf"]
 [ext_resource type="Texture2D" uid="uid://f28xx22o2oax" path="res://assets/Clouds 1/1.png" id="sky_1"]
 [ext_resource type="Texture2D" uid="uid://b1lyw48k4x2so" path="res://assets/Clouds 1/2.png" id="sky_2"]
@@ -77,6 +80,15 @@ texture = ExtResource("sky_4")
 
 [node name="GlobalInput" type="Node" parent="." unique_id=1931642414]
 script = ExtResource("3_global_input")
+
+[node name="BossDirector" type="Node" parent="."]
+script = ExtResource("6_boss_director")
+GothMermaidScene = ExtResource("7_goth_mermaid")
+KrakenScene = ExtResource("8_kraken")
+GothMermaidTriggerSize = 5
+GothMermaidTriggerDepth = 1200.0
+KrakenTriggerSize = 8
+KrakenTriggerDepth = 4200.0
 
 [node name="SoundManager" type="Node" parent="." unique_id=1219861470]
 script = ExtResource("2_sound")
