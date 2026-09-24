@@ -15,6 +15,9 @@ public partial class Player : CharacterBody2D
     [Signal]
     public delegate void ComboTriggeredEventHandler(string text, Vector2 worldPosition);
 
+    [Signal]
+    public delegate void DefeatedEventHandler();
+
     [Export]
     public float Speed = 200.0f;
 
@@ -197,6 +200,12 @@ public partial class Player : CharacterBody2D
     {
         if (IsInvulnerable)
         {
+            return;
+        }
+
+        if (Size <= 1)
+        {
+            EmitSignal(SignalName.Defeated);
             return;
         }
 

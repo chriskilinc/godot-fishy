@@ -85,8 +85,8 @@ vertical_alignment = 1
 [node name="LevelPreview" type="HBoxContainer" parent="GrowthPanel" unique_id=131845770]
 layout_mode = 2
 size_flags_horizontal = 4
-alignment = 1
 theme_override_constants/separation = 18
+alignment = 1
 
 [node name="PrevLevel" type="VBoxContainer" parent="GrowthPanel/LevelPreview" unique_id=1922478152]
 layout_mode = 2
@@ -94,10 +94,10 @@ size_flags_horizontal = 4
 alignment = 1
 
 [node name="PrevIconPanel" type="PanelContainer" parent="GrowthPanel/LevelPreview/PrevLevel" unique_id=1180418170]
+self_modulate = Color(0.78, 0.86, 1, 0.92)
 custom_minimum_size = Vector2(58, 40)
 layout_mode = 2
 size_flags_horizontal = 4
-self_modulate = Color(0.78, 0.86, 1, 0.92)
 
 [node name="PrevIcon" type="TextureRect" parent="GrowthPanel/LevelPreview/PrevLevel/PrevIconPanel" unique_id=1150336624]
 custom_minimum_size = Vector2(52, 34)
@@ -118,10 +118,10 @@ size_flags_horizontal = 4
 alignment = 1
 
 [node name="CurrentIconPanel" type="PanelContainer" parent="GrowthPanel/LevelPreview/CurrentLevel" unique_id=301718004]
+self_modulate = Color(1, 1, 0.78, 1)
 custom_minimum_size = Vector2(58, 40)
 layout_mode = 2
 size_flags_horizontal = 4
-self_modulate = Color(1, 1, 0.78, 1)
 
 [node name="CurrentIcon" type="TextureRect" parent="GrowthPanel/LevelPreview/CurrentLevel/CurrentIconPanel" unique_id=1528891518]
 custom_minimum_size = Vector2(52, 34)
@@ -142,10 +142,10 @@ size_flags_horizontal = 4
 alignment = 1
 
 [node name="NextIconPanel" type="PanelContainer" parent="GrowthPanel/LevelPreview/NextLevel" unique_id=377874021]
+self_modulate = Color(0.78, 0.86, 1, 0.92)
 custom_minimum_size = Vector2(58, 40)
 layout_mode = 2
 size_flags_horizontal = 4
-self_modulate = Color(0.78, 0.86, 1, 0.92)
 
 [node name="NextIcon" type="TextureRect" parent="GrowthPanel/LevelPreview/NextLevel/NextIconPanel" unique_id=1783014897]
 custom_minimum_size = Vector2(52, 34)
@@ -208,4 +208,43 @@ layout_mode = 2
 value = 1.0
 show_percentage = false
 
+[node name="GameOverPanel" type="ColorRect" parent="." unique_id=947245756]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="CenterContainer" type="CenterContainer" parent="GameOverPanel" unique_id=701024785]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameOverPanel/CenterContainer" unique_id=1658753743]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="GameOverLabel" type="Label" parent="GameOverPanel/CenterContainer/VBoxContainer" unique_id=648594702]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "Game Over"
+horizontal_alignment = 1
+
+[node name="RestartButton" type="Button" parent="GameOverPanel/CenterContainer/VBoxContainer" unique_id=804443288]
+layout_mode = 2
+text = "Restart"
+
+[node name="QuitButton" type="Button" parent="GameOverPanel/CenterContainer/VBoxContainer" unique_id=2049162796]
+layout_mode = 2
+text = "Quit"
+
 [connection signal="pressed" from="PauseButton" to="." method="_OnPausePressed"]
+[connection signal="pressed" from="GameOverPanel/CenterContainer/VBoxContainer/RestartButton" to="." method="_OnRestartPressed"]
+[connection signal="pressed" from="GameOverPanel/CenterContainer/VBoxContainer/QuitButton" to="." method="_OnQuitPressed"]

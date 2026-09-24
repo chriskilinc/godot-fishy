@@ -18,6 +18,9 @@ public partial class GameUI : Control
     private Label _mutedLabel;
     private Button _pauseButton;
     private Control _floatingTextLayer;
+    private Control _gameOverPanel;
+    private Button _restartButton;
+    private Button _quitButton;
 
     public override void _Ready()
     {
@@ -36,6 +39,9 @@ public partial class GameUI : Control
         _mutedLabel = GetNodeOrNull<Label>("MutedLabel");
         _pauseButton = GetNodeOrNull<Button>("PauseButton");
         _floatingTextLayer = GetNodeOrNull<Control>("FloatingTextLayer");
+        _gameOverPanel = GetNodeOrNull<Control>("GameOverPanel");
+        _restartButton = GetNodeOrNull<Button>("GameOverPanel/CenterContainer/VBoxContainer/RestartButton");
+        _quitButton = GetNodeOrNull<Button>("GameOverPanel/CenterContainer/VBoxContainer/QuitButton");
 
         if (_comboTimerBar != null)
         {
@@ -57,6 +63,31 @@ public partial class GameUI : Control
         }
 
         _mutedLabel.Visible = muted;
+    }
+
+    public void ShowGameOver()
+    {
+        if (_gameOverPanel != null)
+        {
+            _gameOverPanel.Visible = true;
+        }
+    }
+
+    private void _OnRestartPressed()
+    {
+        var tree = GetTree();
+        if (tree == null)
+        {
+            return;
+        }
+
+        tree.Paused = false;
+        tree.ReloadCurrentScene();
+    }
+
+    private void _OnQuitPressed()
+    {
+        GetTree()?.Quit();
     }
 
     public void PlayGrowthBarEffect()

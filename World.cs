@@ -102,6 +102,7 @@ public partial class World : Node2D
             _player.FoodGained += OnPlayerFoodGained;
             _player.Grew += OnPlayerGrew;
             _player.ComboTriggered += OnPlayerComboTriggered;
+            _player.Defeated += OnPlayerDefeated;
         }
 
         if (_soundManager != null)
@@ -144,6 +145,7 @@ public partial class World : Node2D
             _player.FoodGained -= OnPlayerFoodGained;
             _player.Grew -= OnPlayerGrew;
             _player.ComboTriggered -= OnPlayerComboTriggered;
+            _player.Defeated -= OnPlayerDefeated;
         }
 
         if (_soundManager != null)
@@ -489,6 +491,13 @@ public partial class World : Node2D
     {
         _soundManager?.PlayCombo();
         ShowComboPopup(text, worldPosition);
+    }
+
+    private void OnPlayerDefeated()
+    {
+        GetTree().Paused = true;
+        Input.MouseMode = Input.MouseModeEnum.Visible;
+        _ui?.ShowGameOver();
     }
 
     private void OnMuteChanged(bool muted)
