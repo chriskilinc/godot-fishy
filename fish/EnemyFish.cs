@@ -377,12 +377,17 @@ public partial class EnemyFish : Area2D
         {
             if (Size > player.Size)
             {
-                // Enemy fish is bigger than player, player loses
+                if (player.IsInvulnerable)
+                {
+                    return;
+                }
+
+                // Enemy fish is bigger than player, player loses food and gets briefly invulnerable
                 if (_world?.IsDebugEnabled() == true)
                 {
                     GD.Print("Player has been eaten!");
                 }
-                // You can add logic to reset the game or reduce player's size here
+                player.OnEatenByEnemy();
             }
             else
             {

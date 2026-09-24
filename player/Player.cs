@@ -123,6 +123,9 @@ public partial class Player : CharacterBody2D
     [Export]
     public bool ComboEnabled = false;
 
+    [Export]
+    public float EatenInvulnerabilityDuration { get; set; } = 2.5f;
+
     public int FoodEaten { get; private set; } = 0;
     public int FoodTowardsNextSize => _foodTowardsNextSize;
     public int FoodNeededForNextSize => GetFoodRequiredForNextSize();
@@ -134,6 +137,7 @@ public partial class Player : CharacterBody2D
     private int _foodTowardsNextSize = 0;
     private int _comboCount = 0;
     private double _comboTimeRemaining = 0.0;
+    private double _invulnerabilityTimeRemaining = 0.0;
     private World _world;
     private CollisionShape2D _collisionShape;
     private AnimatedSprite2D _sprite;
@@ -180,10 +184,55 @@ public partial class Player : CharacterBody2D
         }
     }
 
+    public bool IsInvulnerable => _invulnerabilityTimeRemaining > 0.0;
+
     public override void _Process(double delta)
     {
         UpdateCombo(delta);
+        UpdateInvulnerability(delta);
         UpdateDebugDepthLabel();
+    }
+
+    public void OnEatenByEnemy()
+    {
+        if (IsInvulnerable)
+        {
+            return;
+        }
+
+        _foodTowardsNextSize = 0;
+        _invulnerabilityTimeRemaining = Math.Max(0.0f, EatenInvulnerabilityDuration);
+
+        if (_world?.IsDebugEnabled() == true)
+        {
+            GD.Print($"Player was eaten! Food reset for this level, invulnerable for {EatenInvulnerabilityDuration}s.");
+        }
+
+        EmitSignal(SignalName.StatsChanged);
+    }
+
+    private void UpdateInvulnerability(double delta)
+    {
+        if (_invulnerabilityTimeRemaining <= 0.0)
+        {
+            return;
+        }
+
+        _invulnerabilityTimeRemaining = Math.Max(0.0, _invulnerabilityTimeRemaining - delta);
+
+        if (_sprite == null)
+        {
+            return;
+        }
+
+        if (_invulnerabilityTimeRemaining <= 0.0)
+        {
+            _sprite.Modulate = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+            return;
+        }
+
+        var blinkVisible = Mathf.Sin((float)_invulnerabilityTimeRemaining * 20.0f) > 0.0f;
+        _sprite.Modulate = new Color(1.0f, 1.0f, 1.0f, blinkVisible ? 0.35f : 1.0f);
     }
 
     public override void _PhysicsProcess(double delta)
