@@ -46,6 +46,9 @@ public partial class EnemyFish : Area2D
     public float HuntSpeedMultiplier { get; set; } = 1.25f;
 
     [Export]
+    public float HuntDirectionSmoothing { get; set; } = 12.0f;
+
+    [Export]
     public Color HuntDebugColor { get; set; } = new Color(1.0f, 0.25f, 0.18f, 0.9f);
 
     [Export]
@@ -269,7 +272,8 @@ public partial class EnemyFish : Area2D
         }
 
         var targetDirection = GetSteeringDirection(dt, out var avoidanceSteering);
-        var lerpWeight = 1.0f - Mathf.Exp(-Mathf.Max(0.01f, DirectionSmoothing) * dt);
+        var directionSmoothing = _isHunting ? HuntDirectionSmoothing : DirectionSmoothing;
+        var lerpWeight = 1.0f - Mathf.Exp(-Mathf.Max(0.01f, directionSmoothing) * dt);
         _direction = _direction.Lerp(targetDirection, lerpWeight).Normalized();
 
         if (_direction.LengthSquared() <= 0.0001f)
