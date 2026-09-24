@@ -34,6 +34,21 @@ public partial class EnemyFish : Area2D
     public float AvoidSpeedBoostCooldown { get; set; } = 1.4f;
 
     [Export]
+    public float HuntRadius { get; set; } = 260.0f;
+
+    [Export]
+    public float HuntGiveUpDelay { get; set; } = 4.0f;
+
+    [Export]
+    public float HuntCooldown { get; set; } = 3.0f;
+
+    [Export]
+    public float HuntSpeedMultiplier { get; set; } = 1.25f;
+
+    [Export]
+    public Color HuntDebugColor { get; set; } = new Color(1.0f, 0.25f, 0.18f, 0.9f);
+
+    [Export]
     public float BoundsPadding { get; set; } = 16.0f;
 
     [Export]
@@ -81,6 +96,9 @@ public partial class EnemyFish : Area2D
     private float _avoidSpeedBoostCooldownTimer = 0.0f;
     private float _farFromPlayerTimer = 0.0f;
     private float _despawnProgress = 0.0f;
+    private float _huntTimer = 0.0f;
+    private float _huntCooldownTimer = 0.0f;
+    private bool _isHunting = false;
     private bool _playerInAvoidanceRange = false;
     private bool _wasDebugDrawEnabled = false;
     private Vector2 _debugVelocity = Vector2.Zero;
@@ -163,6 +181,21 @@ public partial class EnemyFish : Area2D
             return;
         }
 
+        var huntRadius = Mathf.Max(0.0f, HuntRadius);
+            if ((_player == null || Size > _player.Size) && huntRadius > 0.0f)
+        {
+            DrawArc(
+                Vector2.Zero,
+                huntRadius,
+                0.0f,
+                Mathf.Tau,
+                64,
+                HuntDebugColor,
+                _isHunting ? 3.0f : 1.5f,
+                true
+            );
+        }
+
         var radius = Mathf.Max(0.0f, DespawnDistanceFromPlayer);
         if (radius > 0.0f)
         {
@@ -214,11 +247,12 @@ public partial class EnemyFish : Area2D
         }
 
         var isDespawning = _farFromPlayerTimer > 0.0f;
+        UpdateHuntState(dt);
 
         _avoidSpeedBoostTimer = Mathf.Max(0.0f, _avoidSpeedBoostTimer - dt);
         _avoidSpeedBoostCooldownTimer = Mathf.Max(0.0f, _avoidSpeedBoostCooldownTimer - dt);
 
-        if (UpdateIdlePause(dt))
+        if (!_isHunting && UpdateIdlePause(dt))
         {
             _debugVelocity = Vector2.Zero;
             _debugSteeringTarget = _direction;
@@ -255,6 +289,10 @@ public partial class EnemyFish : Area2D
         if (isDespawning)
         {
             _debugStateLabel = "despawn_timer";
+        }
+        else if (_isHunting)
+        {
+            _debugStateLabel = "hunt";
         }
         else if (avoidanceSteering.LengthSquared() > 0.0001f)
         {
@@ -362,6 +400,14 @@ public partial class EnemyFish : Area2D
 
     private Vector2 GetSteeringDirection(float dt, out Vector2 avoidanceSteering)
     {
+        if (_isHunting && _player != null)
+        {
+            avoidanceSteering = Vector2.Zero;
+            var huntDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
+            var huntSteering = huntDirection + GetBoundsSteering();
+            return huntSteering.LengthSquared() > 0.0001f ? huntSteering.Normalized() : huntDirection;
+        }
+
         UpdateWanderDirection(dt);
 
         var steering = _direction;
@@ -438,7 +484,7 @@ public partial class EnemyFish : Area2D
 
     private Vector2 GetAvoidanceSteering()
     {
-        if (_player == null || !_playerInAvoidanceRange)
+        if (_player == null || Size > _player.Size || !_playerInAvoidanceRange)
         {
             return Vector2.Zero;
         }
@@ -477,6 +523,11 @@ public partial class EnemyFish : Area2D
     private float GetCurrentMovementSpeed()
     {
         var baseSpeed = Mathf.Max(0.0f, Speed);
+        if (_isHunting)
+        {
+            return baseSpeed * Mathf.Max(1.0f, HuntSpeedMultiplier);
+        }
+
         if (_avoidSpeedBoostTimer <= 0.0f)
         {
             return baseSpeed;
@@ -484,6 +535,48 @@ public partial class EnemyFish : Area2D
 
         var boostMultiplier = Mathf.Max(1.0f, AvoidSpeedBoostMultiplier);
         return baseSpeed * boostMultiplier;
+    }
+
+    private void UpdateHuntState(float dt)
+    {
+        _huntCooldownTimer = Mathf.Max(0.0f, _huntCooldownTimer - dt);
+
+        if (_player == null || Size <= _player.Size)
+        {
+            _isHunting = false;
+            _huntTimer = 0.0f;
+            return;
+        }
+
+        var huntRadius = Mathf.Max(0.0f, HuntRadius);
+        var isPlayerWithinHuntRadius = huntRadius > 0.0f
+            && GlobalPosition.DistanceSquaredTo(_player.GlobalPosition) <= huntRadius * huntRadius;
+
+        if (_isHunting)
+        {
+            if (isPlayerWithinHuntRadius)
+            {
+                _huntTimer = Mathf.Max(0.01f, HuntGiveUpDelay);
+                return;
+            }
+
+            _huntTimer = Mathf.Max(0.0f, _huntTimer - dt);
+            if (_huntTimer <= 0.0f)
+            {
+                _isHunting = false;
+                _huntCooldownTimer = Mathf.Max(0.0f, HuntCooldown);
+                _direction = GetRandomDirection();
+                ResetWanderTimer();
+            }
+            return;
+        }
+
+        if (_huntCooldownTimer <= 0.0f && isPlayerWithinHuntRadius)
+        {
+            _isHunting = true;
+            _huntTimer = Mathf.Max(0.01f, HuntGiveUpDelay);
+            _idlePauseTimer = 0.0f;
+        }
     }
 
     private float GetAvoidanceRadius()
