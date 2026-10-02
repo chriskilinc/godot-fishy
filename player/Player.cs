@@ -284,7 +284,7 @@ public partial class Player : CharacterBody2D
         }
 
         RegisterCombo();
-        var gainedAmount = Math.Max(1, Mathf.RoundToInt(amount * ComboMultiplier));
+        var gainedAmount = amount;
         var popupPosition = worldPosition ?? GlobalPosition;
 
         FoodEaten += gainedAmount;

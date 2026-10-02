@@ -251,30 +251,45 @@ public partial class World : Node2D
         fish.TreeExited += OnFishTreeExited;
     }
 
-    // Select a fish level from every depth band that contains this position.
-    // Bands may overlap when the range is wider than the step, so choose among
-    // all matches to keep the level distribution varied at those boundaries.
     private int GetFishLevelForDepth(float depthY)
     {
         var maxLevel = Mathf.Max(1, MaxFishLevel);
         var depthStart = LevelDepthStart;
         var depthRangeSize = Mathf.Max(1.0f, LevelDepthRangeSize);
         var depthStep = Mathf.Max(1.0f, LevelDepthStep);
+        var playerLevel = _player?.Size ?? maxLevel;
+        var playerDepth = _player?.Position.Y ?? depthY;
 
-        var matchingLevels = new System.Collections.Generic.List<int>(maxLevel);
+        var matchingLevels = new System.Collections.Generic.List<(int Level, float Weight)>(maxLevel);
+        var totalWeight = 0.0f;
         for (var level = 1; level <= maxLevel; level++)
         {
             var bandStart = depthStart + (level - 1) * depthStep;
             var bandEnd = bandStart + depthRangeSize;
-            if (depthY >= bandStart && depthY <= bandEnd)
+            var isHigherLevel = level > playerLevel;
+            var spawnStart = isHigherLevel ? bandStart - depthStep : bandStart;
+            if (depthY >= spawnStart && depthY <= bandEnd)
             {
-                matchingLevels.Add(level);
+                var approach = Mathf.Clamp((playerDepth - bandStart) / depthStep, 0.0f, 1.0f);
+                var weight = isHigherLevel ? Mathf.Lerp(0.05f, 1.0f, approach) : 1.0f;
+                matchingLevels.Add((level, weight));
+                totalWeight += weight;
             }
         }
 
         if (matchingLevels.Count > 0)
         {
-            return matchingLevels[_rng.RandiRange(0, matchingLevels.Count - 1)];
+            var roll = _rng.Randf() * totalWeight;
+            foreach (var candidate in matchingLevels)
+            {
+                roll -= candidate.Weight;
+                if (roll < 0.0f)
+                {
+                    return candidate.Level;
+                }
+            }
+
+            return matchingLevels[matchingLevels.Count - 1].Level;
         }
 
         // Keep positions above the configured depth at the smallest level and
@@ -296,7 +311,7 @@ public partial class World : Node2D
 
         var clampedLevel = Mathf.Clamp(level, 1, Mathf.Max(1, MaxFishLevel));
         fish.Size = clampedLevel;
-        fish.FoodValue = clampedLevel;
+        fish.FoodValue = 1;
     }
 
     private void OnFishTreeExited()
@@ -337,12 +352,32 @@ public partial class World : Node2D
 
     private Vector2 GetFishSpawnPosition()
     {
-        if (!Engine.IsEditorHint() && !DebugEnabled && _player != null && TryGetOutOfSightSpawnPosition(out var outOfSightPosition))
+        if (!Engine.IsEditorHint() && _player != null)
         {
-            return outOfSightPosition;
+            if (TryGetOutOfSightSpawnPosition(out var outOfSightPosition))
+            {
+                return outOfSightPosition;
+            }
+
+            return GetRandomSpawnPositionNearPlayer();
         }
 
         return GetRandomSpawnPositionInPlayableArea();
+    }
+
+    private Vector2 GetRandomSpawnPositionNearPlayer()
+    {
+        var playableArea = GetPlayableArea();
+        var minDistance = Mathf.Max(0.0f, RespawnNearPlayerMinDistance);
+        var maxDistance = Mathf.Max(minDistance + 1.0f, RespawnNearPlayerMaxDistance);
+        var angle = _rng.RandfRange(0.0f, Mathf.Tau);
+        var distance = _rng.RandfRange(minDistance, maxDistance);
+        var candidate = _player.Position + Vector2.Right.Rotated(angle) * distance;
+
+        return new Vector2(
+            Mathf.Clamp(candidate.X, playableArea.Position.X, playableArea.End.X),
+            Mathf.Clamp(candidate.Y, playableArea.Position.Y, playableArea.End.Y)
+        );
     }
 
     private Vector2 GetRandomSpawnPositionInPlayableArea()
@@ -383,7 +418,7 @@ public partial class World : Node2D
         {
             var angle = _rng.RandfRange(0.0f, Mathf.Tau);
             var distance = _rng.RandfRange(minDistance, maxDistance);
-            var candidate = _player.GlobalPosition + Vector2.Right.Rotated(angle) * distance;
+            var candidate = _player.Position + Vector2.Right.Rotated(angle) * distance;
 
             if (!playableArea.HasPoint(candidate))
             {
@@ -397,16 +432,6 @@ public partial class World : Node2D
 
             spawnPosition = candidate;
             return true;
-        }
-
-        for (var i = 0; i < attempts; i++)
-        {
-            var candidate = GetRandomSpawnPositionInPlayableArea();
-            if (!visibleWorldRect.HasPoint(candidate))
-            {
-                spawnPosition = candidate;
-                return true;
-            }
         }
 
         return false;

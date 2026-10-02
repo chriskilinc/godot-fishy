@@ -400,7 +400,11 @@ public partial class EnemyFish : Area2D
                 {
                     GD.Print("Enemy fish has been eaten!");
                 }
-                player.EatFood(FoodValue, GlobalPosition);
+                if (player.Size - Size <= 2)
+                {
+                    var foodReward = Size == player.Size && player.Size > 1 ? 2 : 1;
+                    player.EatFood(foodReward, GlobalPosition);
+                }
                 QueueFree(); // Remove the enemy fish from the scene
                 // You can add logic to increase player's size here
             }
