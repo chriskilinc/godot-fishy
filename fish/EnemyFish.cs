@@ -103,6 +103,11 @@ public partial class EnemyFish : Area2D
     private float _huntCooldownTimer = 0.0f;
     private bool _isHunting = false;
     private bool _playerInAvoidanceRange = false;
+    private FishBehaviorProfile _behavior;
+    private float _fleeTimer = 0.0f;
+    private float _fleePhase = 0.0f;
+    private float _chargeTimer = 0.0f;
+    private Vector2 _chargeDirection = Vector2.Right;
     private bool _wasDebugDrawEnabled = false;
     private Vector2 _debugVelocity = Vector2.Zero;
     private Vector2 _debugSteeringTarget = Vector2.Right;
@@ -121,12 +126,43 @@ public partial class EnemyFish : Area2D
         _avoidanceSensor = GetNodeOrNull<Area2D>("AvoidanceSensor");
         _soundManager = _world?.GetNodeOrNull<SoundManager>("SoundManager");
         _wasDebugDrawEnabled = _world?.IsDebugEnabled() == true;
+        ApplyBehaviorProfile();
+        _fleePhase = _rng.RandfRange(0.0f, Mathf.Tau);
         _direction = GetRandomDirection();
         ResetWanderTimer();
         FishLevelVisuals.ApplyLevelFrames(_animatedSprite, Size, includeEatAnimation: false);
         InitializeCollisionShape();
         ApplyCollisionShapeByLevel();
         UpdateDebugLevelLabel();
+    }
+
+    private void ApplyBehaviorProfile()
+    {
+        _behavior = FishBehaviorProfiles.GetForLevel(Size);
+        Speed = _behavior.Speed;
+        WanderTurnIntervalMin = _behavior.WanderIntervalMin;
+        WanderTurnIntervalMax = _behavior.WanderIntervalMax;
+        DirectionSmoothing = _behavior.DirectionSmoothing;
+        IdlePauseChance = _behavior.IdleChance;
+        IdlePauseMinSeconds = _behavior.IdleMin;
+        IdlePauseMaxSeconds = _behavior.IdleMax;
+        AvoidStrengthMultiplier = _behavior.FleeStrength;
+        AvoidSpeedBoostMultiplier = _behavior.FleeSpeedMultiplier;
+        AvoidSpeedBoostDuration = _behavior.FleeBurstDuration;
+        AvoidSpeedBoostCooldown = _behavior.FleeBurstCooldown;
+        HuntRadius = _behavior.HuntRadius;
+        HuntGiveUpDelay = _behavior.HuntGiveUpDelay;
+        HuntCooldown = _behavior.HuntCooldown;
+        HuntSpeedMultiplier = _behavior.HuntSpeedMultiplier;
+        HuntDirectionSmoothing = _behavior.HuntSmoothing;
+
+        var sensorShape = _avoidanceSensor?.GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
+        if (sensorShape?.Shape is CircleShape2D circleShape)
+        {
+            var uniqueShape = (CircleShape2D)circleShape.Duplicate();
+            uniqueShape.Radius = _behavior.FleeRadius;
+            sensorShape.Shape = uniqueShape;
+        }
     }
 
     private void InitializeCollisionShape()
@@ -237,7 +273,7 @@ public partial class EnemyFish : Area2D
         }
 
         _debugLevelLabel.Visible = _world?.IsDebugEnabled() == true;
-        _debugLevelLabel.Text = $"lvl {Mathf.Max(1, Size)}";
+        _debugLevelLabel.Text = $"lvl {Mathf.Max(1, Size)}: {_behavior.Name}";
     }
 
     public override void _PhysicsProcess(double delta)
@@ -254,8 +290,9 @@ public partial class EnemyFish : Area2D
 
         _avoidSpeedBoostTimer = Mathf.Max(0.0f, _avoidSpeedBoostTimer - dt);
         _avoidSpeedBoostCooldownTimer = Mathf.Max(0.0f, _avoidSpeedBoostCooldownTimer - dt);
+        UpdateFleeState(dt);
 
-        if (!_isHunting && UpdateIdlePause(dt))
+        if (!_isHunting && _fleeTimer <= 0.0f && UpdateIdlePause(dt))
         {
             _debugVelocity = Vector2.Zero;
             _debugSteeringTarget = _direction;
@@ -272,7 +309,8 @@ public partial class EnemyFish : Area2D
         }
 
         var targetDirection = GetSteeringDirection(dt, out var avoidanceSteering);
-        var directionSmoothing = _isHunting ? HuntDirectionSmoothing : DirectionSmoothing;
+        var directionSmoothing = _isHunting ? HuntDirectionSmoothing
+            : _fleeTimer > 0.0f ? _behavior.FleeSmoothing : DirectionSmoothing;
         var lerpWeight = 1.0f - Mathf.Exp(-Mathf.Max(0.01f, directionSmoothing) * dt);
         _direction = _direction.Lerp(targetDirection, lerpWeight).Normalized();
 
@@ -416,12 +454,15 @@ public partial class EnemyFish : Area2D
         if (_isHunting && _player != null)
         {
             avoidanceSteering = Vector2.Zero;
-            var huntDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
+            var huntDirection = GetHuntDirection(dt);
             var huntSteering = huntDirection + GetBoundsSteering();
             return huntSteering.LengthSquared() > 0.0001f ? huntSteering.Normalized() : huntDirection;
         }
 
-        UpdateWanderDirection(dt);
+        if (_fleeTimer <= 0.0f)
+        {
+            UpdateWanderDirection(dt);
+        }
 
         var steering = _direction;
         steering += GetBoundsSteering();
@@ -454,7 +495,7 @@ public partial class EnemyFish : Area2D
             return;
         }
 
-        _direction = (_direction + GetRandomDirection() * 0.65f).Normalized();
+        _direction = (_direction + GetRandomDirection() * _behavior.WanderTurnStrength).Normalized();
         if (_direction.LengthSquared() <= 0.0001f)
         {
             _direction = GetRandomDirection();
@@ -495,24 +536,59 @@ public partial class EnemyFish : Area2D
         _wanderTimer = _rng.RandfRange(minInterval, maxInterval);
     }
 
+    private void UpdateFleeState(float dt)
+    {
+        var avoidanceRadius = GetAvoidanceRadius();
+        var isThreatened = _player != null && Size <= _player.Size && _playerInAvoidanceRange
+            && GlobalPosition.DistanceSquaredTo(_player.GlobalPosition) < avoidanceRadius * avoidanceRadius;
+        _fleeTimer = isThreatened ? _behavior.FleePersistence : Mathf.Max(0.0f, _fleeTimer - dt);
+        if (_player == null || Size > _player.Size)
+        {
+            _fleeTimer = 0.0f;
+        }
+
+        if (_fleeTimer > 0.0f)
+        {
+            _idlePauseTimer = 0.0f;
+            _fleePhase += dt * _behavior.FleeSwerveFrequency * Mathf.Tau;
+            TryTriggerAvoidSpeedBoost();
+        }
+    }
+
+    private Vector2 GetHuntDirection(float dt)
+    {
+        if (_behavior.HuntStyle == FishHuntStyle.Charge)
+        {
+            _chargeTimer -= dt;
+            if (_chargeTimer <= 0.0f)
+            {
+                _chargeDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
+                _chargeTimer = _behavior.ChargeRetargetInterval;
+            }
+            return _chargeDirection;
+        }
+
+        var targetPosition = _player.GlobalPosition;
+        if (_behavior.HuntStyle == FishHuntStyle.Intercept)
+        {
+            targetPosition += _player.Velocity * _behavior.HuntLeadSeconds;
+        }
+        return GlobalPosition.DirectionTo(targetPosition);
+    }
+
     private Vector2 GetAvoidanceSteering()
     {
-        if (_player == null || Size > _player.Size || !_playerInAvoidanceRange)
+        if (_player == null || _fleeTimer <= 0.0f)
         {
             return Vector2.Zero;
         }
 
         var offsetFromPlayer = GlobalPosition - _player.GlobalPosition;
-        var distance = offsetFromPlayer.Length();
-        var avoidanceRadius = GetAvoidanceRadius();
-        if (distance <= 0.001f || distance >= avoidanceRadius)
-        {
-            return Vector2.Zero;
-        }
-
-        var strength = 1.0f - (distance / Mathf.Max(1.0f, avoidanceRadius));
-        TryTriggerAvoidSpeedBoost();
-        return offsetFromPlayer.Normalized() * strength * Mathf.Max(0.0f, AvoidStrengthMultiplier);
+        var escapeDirection = offsetFromPlayer.LengthSquared() > 0.0001f
+            ? offsetFromPlayer.Normalized() : -_direction;
+        var perpendicular = new Vector2(-escapeDirection.Y, escapeDirection.X);
+        var swerve = Mathf.Sin(_fleePhase) * _behavior.FleeSwerveAmplitude;
+        return (escapeDirection + perpendicular * swerve).Normalized() * Mathf.Max(0.0f, AvoidStrengthMultiplier);
     }
 
     private void TryTriggerAvoidSpeedBoost()
@@ -587,6 +663,7 @@ public partial class EnemyFish : Area2D
         if (_huntCooldownTimer <= 0.0f && isPlayerWithinHuntRadius)
         {
             _isHunting = true;
+            _chargeTimer = 0.0f;
             _huntTimer = Mathf.Max(0.01f, HuntGiveUpDelay);
             _idlePauseTimer = 0.0f;
         }
